@@ -1,0 +1,80 @@
+Programs Due at Start of Current Quarter = 
+CALCULATE(
+    DISTINCTCOUNT('Table'[Program JIRA Key]),
+    FILTER('Table',
+        (
+            NOT(ISBLANK('Table'[Program End Date])) && 'Table'[Program End Date] < [Current Quarter Start] ||
+            NOT(ISBLANK('Table'[Program Baseline End Date])) && 'Table'[Program Baseline End Date] < [Current Quarter Start] ||
+            NOT(ISBLANK('Table'[Change Request New Value])) && 'Table'[Change Request New Value] < [Current Quarter Start]
+        ) &&
+        NOT('Table'[Program Status] IN {"Open", "Closed"})
+    )
+)
+
+Programs Due at End of Current Quarter = 
+CALCULATE(
+    DISTINCTCOUNT('Table'[Program JIRA Key]),
+    FILTER('Table',
+        (
+            NOT(ISBLANK('Table'[Program End Date])) && 'Table'[Program End Date] <= [Current Quarter End] && 'Table'[Program End Date] >= [Current Quarter Start] ||
+            NOT(ISBLANK('Table'[Program Baseline End Date])) && 'Table'[Program Baseline End Date] <= [Current Quarter End] && 'Table'[Program Baseline End Date] >= [Current Quarter Start] ||
+            NOT(ISBLANK('Table'[Change Request New Value])) && 'Table'[Change Request New Value] <= [Current Quarter End] && 'Table'[Change Request New Value] >= [Current Quarter Start]
+        ) &&
+        NOT('Table'[Program Status] IN {"Open", "Closed"})
+    )
+)
+
+Programs Due Next Quarter = 
+CALCULATE(
+    DISTINCTCOUNT('Table'[Program JIRA Key]),
+    FILTER('Table',
+        (
+            NOT(ISBLANK('Table'[Program End Date])) && 'Table'[Program End Date] >= [Next Quarter Start] && 'Table'[Program End Date] <= [Next Quarter End] ||
+            NOT(ISBLANK('Table'[Program Baseline End Date])) && 'Table'[Program Baseline End Date] >= [Next Quarter Start] && 'Table'[Program Baseline End Date] <= [Next Quarter End] ||
+            NOT(ISBLANK('Table'[Change Request New Value])) && 'Table'[Change Request New Value] >= [Next Quarter Start] && 'Table'[Change Request New Value] <= [Next Quarter End]
+        ) &&
+        NOT('Table'[Program Status] IN {"Open", "Closed"})
+    )
+)
+
+Business Outcomes Due at Start of Current Quarter = 
+CALCULATE(
+    DISTINCTCOUNT('Table'[Business Outcome JIRA Key]),
+    FILTER('Table',
+        (
+            NOT(ISBLANK('Table'[Business Outcome Actual End Date Formatted])) && 'Table'[Business Outcome Actual End Date Formatted] < [Current Quarter Start] ||
+            ISBLANK('Table'[Business Outcome Actual End Date Formatted]) && NOT(ISBLANK('Table'[Business Outcomes End Date])) && 'Table'[Business Outcomes End Date] < [Current Quarter Start] ||
+            ISBLANK('Table'[Business Outcome Actual End Date Formatted]) && ISBLANK('Table'[Business Outcomes End Date]) && 'Table'[Business Outcome Baseline End Date Formatted] < [Current Quarter Start] ||
+            NOT(ISBLANK('Table'[Change Request New Value])) && 'Table'[Change Request New Value] < [Current Quarter Start]
+        ) &&
+        NOT('Table'[Business Outcome Status] IN {"Open", "Closed"})
+    )
+)
+
+Business Outcomes Due at End of Current Quarter = 
+CALCULATE(
+    DISTINCTCOUNT('Table'[Business Outcome JIRA Key]),
+    FILTER('Table',
+        (
+            NOT(ISBLANK('Table'[Business Outcome Actual End Date Formatted])) && 'Table'[Business Outcome Actual End Date Formatted] <= [Current Quarter End] && 'Table'[Business Outcome Actual End Date Formatted] >= [Current Quarter Start] ||
+            ISBLANK('Table'[Business Outcome Actual End Date Formatted]) && NOT(ISBLANK('Table'[Business Outcomes End Date])) && 'Table'[Business Outcomes End Date] <= [Current Quarter End] && 'Table'[Business Outcomes End Date] >= [Current Quarter Start] ||
+            ISBLANK('Table'[Business Outcome Actual End Date Formatted]) && ISBLANK('Table'[Business Outcomes End Date]) && 'Table'[Business Outcome Baseline End Date Formatted] <= [Current Quarter End] && 'Table'[Business Outcome Baseline End Date Formatted] >= [Current Quarter Start] ||
+            NOT(ISBLANK('Table'[Change Request New Value])) && 'Table'[Change Request New Value] <= [Current Quarter End] && 'Table'[Change Request New Value] >= [Current Quarter Start]
+        ) &&
+        NOT('Table'[Business Outcome Status] IN {"Open", "Closed"})
+    )
+)
+
+Business Outcomes Due Next Quarter = 
+CALCULATE(
+    DISTINCTCOUNT('Table'[Business Outcome JIRA Key]),
+    FILTER('Table',
+        (
+            NOT(ISBLANK('Table'[Business Outcome Actual End Date Formatted])) && 'Table'[Business Outcome Actual End Date Formatted] >= [Next Quarter Start] && 'Table'[Business Outcome Actual End Date Formatted] <= [Next Quarter End] ||
+            ISBLANK('Table'[Business Outcome Actual End Date Formatted]) && NOT(ISBLANK('Table'[Business Outcomes End Date])) && 'Table'[Business Outcomes End Date] >= [Next Quarter Start] && 'Table'[Business Outcomes End Date] <= [Next Quarter End] ||
+            ISBLANK('Table'[Business Outcome Actual End Date Formatted]) && ISBLANK('Table'[Business Outcomes End Date]) && 'Table'[Business Outcome Baseline End Date Formatted] >= [Next Quarter Start] && 'Table'[Business Outcome Baseline End Date Formatted] <= [Next Quarter End] ||
+            NOT(ISBLANK('Table'[Change Request New Value])) && 'Table'[Change Request New Value] >= [Next Quarter Start] && 'Table'[Change Request New Value] <= [Next Quarter End]
+        ) &&
+        NOT('Table'[Business Outcome Status] IN {"Open", "Closed"})
+    )
+)
