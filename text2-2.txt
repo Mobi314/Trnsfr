@@ -1,0 +1,99 @@
+Business Outcomes Moved to Future Quarters Via End Date CR = 
+CALCULATE(
+    DISTINCTCOUNT('Table'[Business Outcome JIRA Key]),
+    FILTER('Table',
+        'Table'[Change Request New Value] > [Next Quarter End] &&
+        NOT(ISBLANK('Table'[Change Request New Value])) &&
+        ('Table'[Business Outcomes End Date] < 'Table'[Change Request New Value] || 'Table'[Business Outcome Baseline End Date Formatted] < 'Table'[Change Request New Value]) &&
+        NOT('Table'[Business Outcome Status] IN {"Open", "Closed"})
+    )
+)
+
+Business Outcomes Added During Quarter = 
+CALCULATE(
+    DISTINCTCOUNT('Table'[Business Outcome JIRA Key]),
+    FILTER('Table',
+        'Table'[Business Outcomes Start Date] >= [Current Quarter Start] &&
+        'Table'[Business Outcomes Start Date] <= [Current Quarter End]
+    )
+)
+
+Business Outcomes Completed in Current Quarter = 
+CALCULATE(
+    DISTINCTCOUNT('Table'[Business Outcome JIRA Key]),
+    FILTER('Table',
+        'Table'[Business Outcome Actual End Date Formatted] >= [Current Quarter Start] &&
+        'Table'[Business Outcome Actual End Date Formatted] <= [Current Quarter End] &&
+        'Table'[Business Outcome RAG] = "Blue" &&
+        'Table'[Business Outcome Status] = "Closed" &&
+        'Table'[Business Outcome Status2] = "Closed"
+    )
+)
+
+Mission Critical Business Outcomes Completed in Current Quarter = 
+CALCULATE(
+    DISTINCTCOUNT('Table'[Business Outcome JIRA Key]),
+    FILTER('Table',
+        'Table'[Mission Critical] = "Mission Critical" &&
+        'Table'[Business Outcome RAG] = "Blue" &&
+        'Table'[Business Outcome Actual End Date Formatted] >= [Current Quarter Start] &&
+        'Table'[Business Outcome Actual End Date Formatted] <= [Current Quarter End] &&
+        'Table'[Business Outcome Status] = "Closed" &&
+        'Table'[Business Outcome Status2] = "Closed"
+    )
+)
+
+Non-Mission Critical Business Outcomes Completed in Current Quarter = 
+CALCULATE(
+    DISTINCTCOUNT('Table'[Business Outcome JIRA Key]),
+    FILTER('Table',
+        NOT('Table'[Mission Critical] = "Mission Critical") &&
+        'Table'[Business Outcome RAG] = "Blue" &&
+        'Table'[Business Outcome Actual End Date Formatted] >= [Current Quarter Start] &&
+        'Table'[Business Outcome Actual End Date Formatted] <= [Current Quarter End] &&
+        'Table'[Business Outcome Status] = "Closed" &&
+        'Table'[Business Outcome Status2] = "Closed"
+    )
+)
+
+Business Outcomes Outstanding in Current Quarter = 
+CALCULATE(
+    DISTINCTCOUNT('Table'[Business Outcome JIRA Key]),
+    FILTER('Table',
+        'Table'[Business Outcome Actual End Date Formatted] >= [Current Quarter Start] &&
+        'Table'[Business Outcome Actual End Date Formatted] <= [Current Quarter End] &&
+        'Table'[Business Outcome RAG] <> "Blue"
+    )
+)
+
+Mission Critical Business Outcomes Outstanding in Current Quarter = 
+CALCULATE(
+    DISTINCTCOUNT('Table'[Business Outcome JIRA Key]),
+    FILTER('Table',
+        'Table'[Mission Critical] = "Mission Critical" &&
+        'Table'[Business Outcome RAG] <> "Blue" &&
+        'Table'[Business Outcome Actual End Date Formatted] >= [Current Quarter Start] &&
+        'Table'[Business Outcome Actual End Date Formatted] <= [Current Quarter End]
+    )
+)
+
+Non-Mission Critical Business Outcomes Outstanding in Current Quarter = 
+CALCULATE(
+    DISTINCTCOUNT('Table'[Business Outcome JIRA Key]),
+    FILTER('Table',
+        NOT('Table'[Mission Critical] = "Mission Critical") &&
+        'Table'[Business Outcome RAG] <> "Blue" &&
+        'Table'[Business Outcome Actual End Date Formatted] >= [Current Quarter Start] &&
+        'Table'[Business Outcome Actual End Date Formatted] <= [Current Quarter End]
+    )
+)
+
+Business Outcomes Moved to Current Quarter = 
+CALCULATE(
+    DISTINCTCOUNT('Table'[Business Outcome JIRA Key]),
+    FILTER('Table',
+        'Table'[Change Request New Value] >= [Current Quarter Start] &&
+        'Table'[Change Request New Value] <= [Current Quarter End] &&
+        NOT(ISBLANK('Table'[Change Request New Value]))
+    )
+)
