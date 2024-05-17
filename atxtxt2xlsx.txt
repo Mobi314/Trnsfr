@@ -17,6 +17,7 @@ ELSE
 ENDIF
 
 import pandas as pd
+import re
 
 # Get the Alteryx input
 df = Alteryx.read("#1")
@@ -28,57 +29,53 @@ def parse_combined_record(record):
         'CUSIP': '',
         'SECURITY_DESC': '',
         'STOCK_REC_QTY': '',
-        'DTC_QTY': '',
         'CMS_SEG_QTY': '',
-        'NON_DTC_GCL': '',
         'CAMS_SEG_QTY': '',
-        'NOPS_SEG_QTY': '',
+        'DTC_QTY': '',
+        'NON_DTC_GCL': '',
+        'OPT_SEG_QTY': '',
         'TOTAL': ''
     }
     
-    parts = record.split()
+    # Regex patterns to match each field
+    security_pattern = r'^\s*(\S+)\s+'
+    cusip_pattern = r'(\S+)\s+'
+    security_desc_pattern = r'(.+?)\s{2,}'
+    stock_rec_qty_pattern = r'(\S+)\s{2,}'
+    cms_seg_qty_pattern = r'(\S+)\s{2,}'
+    cams_seg_qty_pattern = r'(\S+)\s'
+    dtc_qty_pattern = r'\s(\S+)\s{2,}'
+    non_dtc_gcl_pattern = r'\s{2,}(\S+)\s{2,}'
+    opt_seg_qty_pattern = r'\s{2,}(\S+)\s{2,}'
+    total_pattern = r'\s{2,}(\S+)$'
     
-    # SECURITY
-    if parts:
-        fields['SECURITY'] = parts.pop(0)
+    # Combine patterns
+    combined_pattern = (
+        security_pattern +
+        cusip_pattern +
+        security_desc_pattern +
+        stock_rec_qty_pattern +
+        cms_seg_qty_pattern +
+        cams_seg_qty_pattern +
+        dtc_qty_pattern +
+        non_dtc_gcl_pattern +
+        opt_seg_qty_pattern +
+        total_pattern
+    )
     
-    # CUSIP
-    if parts:
-        fields['CUSIP'] = parts.pop(0)
+    match = re.search(combined_pattern, record)
     
-    # SECURITY DESC
-    desc = []
-    while parts and not parts[0].isdigit():
-        desc.append(parts.pop(0))
-    fields['SECURITY_DESC'] = ' '.join(desc)
-    
-    # STOCK REC QTY
-    if parts:
-        fields['STOCK_REC_QTY'] = parts.pop(0)
-    
-    # DTC QTY
-    if parts:
-        fields['DTC_QTY'] = parts.pop(0)
-    
-    # CMS SEG QTY
-    if parts:
-        fields['CMS_SEG_QTY'] = parts.pop(0)
-    
-    # NON DTC GCL
-    if parts:
-        fields['NON_DTC_GCL'] = parts.pop(0)
-    
-    # CAMS SEG QTY
-    if parts:
-        fields['CAMS_SEG_QTY'] = parts.pop(0)
-    
-    # NOPS SEG QTY
-    if parts:
-        fields['NOPS_SEG_QTY'] = parts.pop(0)
-    
-    # TOTAL
-    if parts:
-        fields['TOTAL'] = parts.pop(0)
+    if match:
+        fields['SECURITY'] = match.group(1)
+        fields['CUSIP'] = match.group(2)
+        fields['SECURITY_DESC'] = match.group(3).strip()
+        fields['STOCK_REC_QTY'] = match.group(4)
+        fields['CMS_SEG_QTY'] = match.group(5)
+        fields['CAMS_SEG_QTY'] = match.group(6)
+        fields['DTC_QTY'] = match.group(7)
+        fields['NON_DTC_GCL'] = match.group(8)
+        fields['OPT_SEG_QTY'] = match.group(9)
+        fields['TOTAL'] = match.group(10)
     
     return fields
 
