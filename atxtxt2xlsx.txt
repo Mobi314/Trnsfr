@@ -91,3 +91,59 @@ result_df = pd.concat([df, parsed_df], axis=1)
 
 # Output the result
 Alteryx.write(result_df, 1)
+
+
+
+
+
+
+import pandas as pd
+import re
+
+# Get the Alteryx input
+df = Alteryx.read("#1")
+
+# Define a function to parse each CombinedRecord
+def parse_combined_record(record):
+    fields = {
+        'SECURITY': '',
+        'CUSIP': '',
+        'SECURITY_DESC': '',
+        'STOCK_REC_QTY': '',
+        'CMS_SEG_QTY': '',
+        'CAMS_SEG_QTY': '',
+        'DTC_QTY': '',
+        'NON_DTC_GCL': '',
+        'OPT_SEG_QTY': '',
+        'TOTAL': ''
+    }
+    
+    # Identify positions based on fixed width and spaces patterns
+    parts = re.split(r'\s{2,}', record.strip())
+    
+    if len(parts) >= 10:
+        fields['SECURITY'] = parts[0]
+        fields['CUSIP'] = parts[1]
+        fields['SECURITY_DESC'] = parts[2]
+        fields['STOCK_REC_QTY'] = parts[3]
+        fields['CMS_SEG_QTY'] = parts[4]
+        fields['CAMS_SEG_QTY'] = parts[5]
+        fields['DTC_QTY'] = parts[6]
+        fields['NON_DTC_GCL'] = parts[7]
+        fields['OPT_SEG_QTY'] = parts[8]
+        fields['TOTAL'] = parts[9]
+    else:
+        # Handle cases where there might be fewer parts than expected
+        fields.update(dict(zip(fields.keys(), parts)))
+    
+    return fields
+
+# Apply the function to each record
+parsed_data = df['CombinedRecord'].apply(parse_combined_record)
+parsed_df = pd.DataFrame(parsed_data.tolist())
+
+# Concatenate with the original dataframe
+result_df = pd.concat([df, parsed_df], axis=1)
+
+# Output the result
+Alteryx.write(result_df, 1)
