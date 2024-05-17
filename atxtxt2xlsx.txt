@@ -98,7 +98,6 @@ Alteryx.write(result_df, 1)
 
 
 import pandas as pd
-import re
 
 # Get the Alteryx input
 df = Alteryx.read("#1")
@@ -118,23 +117,75 @@ def parse_combined_record(record):
         'TOTAL': ''
     }
     
-    # Identify positions based on fixed width and spaces patterns
-    parts = re.split(r'\s{2,}', record.strip())
+    # Initialize variables for parsing
+    parts = record.split()
+    idx = 0
     
-    if len(parts) >= 10:
-        fields['SECURITY'] = parts[0]
-        fields['CUSIP'] = parts[1]
-        fields['SECURITY_DESC'] = parts[2]
-        fields['STOCK_REC_QTY'] = parts[3]
-        fields['CMS_SEG_QTY'] = parts[4]
-        fields['CAMS_SEG_QTY'] = parts[5]
-        fields['DTC_QTY'] = parts[6]
-        fields['NON_DTC_GCL'] = parts[7]
-        fields['OPT_SEG_QTY'] = parts[8]
-        fields['TOTAL'] = parts[9]
-    else:
-        # Handle cases where there might be fewer parts than expected
-        fields.update(dict(zip(fields.keys(), parts)))
+    # SECURITY
+    fields['SECURITY'] = parts[idx]
+    idx += 1
+    
+    # CUSIP
+    fields['CUSIP'] = parts[idx]
+    idx += 1
+    
+    # SECURITY DESC
+    desc = []
+    while idx < len(parts) and ' ' not in parts[idx]:
+        desc.append(parts[idx])
+        idx += 1
+    while idx < len(parts) and ' ' in parts[idx]:
+        desc.append(parts[idx])
+        idx += 1
+    fields['SECURITY_DESC'] = ' '.join(desc).strip()
+    
+    # STOCK REC QTY
+    while idx < len(parts) and parts[idx] == '':
+        idx += 1
+    if idx < len(parts):
+        fields['STOCK_REC_QTY'] = parts[idx]
+        idx += 1
+    
+    # CMS SEG QTY
+    while idx < len(parts) and parts[idx] == '':
+        idx += 1
+    if idx < len(parts):
+        fields['CMS_SEG_QTY'] = parts[idx]
+        idx += 1
+    
+    # CAMS SEG QTY
+    while idx < len(parts) and parts[idx] == '':
+        idx += 1
+    if idx < len(parts):
+        fields['CAMS_SEG_QTY'] = parts[idx]
+        idx += 1
+    
+    # DTC QTY
+    while idx < len(parts) and parts[idx] == '':
+        idx += 1
+    if idx < len(parts):
+        fields['DTC_QTY'] = parts[idx]
+        idx += 1
+    
+    # NON DTC GCL
+    while idx < len(parts) and parts[idx] == '':
+        idx += 1
+    if idx < len(parts):
+        fields['NON_DTC_GCL'] = parts[idx]
+        idx += 1
+    
+    # OPT SEG QTY
+    while idx < len(parts) and parts[idx] == '':
+        idx += 1
+    if idx < len(parts):
+        fields['OPT_SEG_QTY'] = parts[idx]
+        idx += 1
+    
+    # TOTAL
+    while idx < len(parts) and parts[idx] == '':
+        idx += 1
+    if idx < len(parts):
+        fields['TOTAL'] = parts[idx]
     
     return fields
 
