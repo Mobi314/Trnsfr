@@ -37,30 +37,19 @@ def parse_combined_record(record):
         'TOTAL': ''
     }
     
-    # Regex patterns to match each field
-    security_pattern = r'^\s*(\S+)\s+'
-    cusip_pattern = r'(\S+)\s+'
-    security_desc_pattern = r'(.+?)\s{2,}'
-    stock_rec_qty_pattern = r'(\S+)\s{2,}'
-    cms_seg_qty_pattern = r'(\S+)\s{2,}'
-    cams_seg_qty_pattern = r'(\S+)\s'
-    dtc_qty_pattern = r'\s(\S+)\s{2,}'
-    non_dtc_gcl_pattern = r'\s{2,}(\S+)\s{2,}'
-    opt_seg_qty_pattern = r'\s{2,}(\S+)\s{2,}'
-    total_pattern = r'\s{2,}(\S+)$'
+    # Patterns to match each field with respect to the specific rules given
+    security_pattern = r'^\s*(\S+)'  # SECURITY: First non-space string
+    cusip_pattern = r'\s+(\S+)'  # CUSIP: Next non-space string
+    desc_pattern = r'\s+(.+?)\s{2,}'  # SECURITY DESC: Characters until two or more spaces
+    qty_pattern = r'(\S+)\s{2,}'  # Generic pattern for quantity fields with two or more spaces
+    single_space_qty_pattern = r'(\S+)\s'  # Quantity field with a single space after it
+    last_qty_pattern = r'(\S+)\s*$'  # Last field (TOTAL) with trailing spaces
     
-    # Combine patterns
+    # Construct the combined regex pattern
     combined_pattern = (
-        security_pattern +
-        cusip_pattern +
-        security_desc_pattern +
-        stock_rec_qty_pattern +
-        cms_seg_qty_pattern +
-        cams_seg_qty_pattern +
-        dtc_qty_pattern +
-        non_dtc_gcl_pattern +
-        opt_seg_qty_pattern +
-        total_pattern
+        security_pattern + cusip_pattern + desc_pattern +
+        qty_pattern * 3 + single_space_qty_pattern +
+        qty_pattern * 3 + last_qty_pattern
     )
     
     match = re.search(combined_pattern, record)
