@@ -37,34 +37,48 @@ def parse_combined_record(record):
         'TOTAL': ''
     }
     
-    # Patterns to match each field with respect to the specific rules given
-    security_pattern = r'^\s*(\S+)'  # SECURITY: First non-space string
-    cusip_pattern = r'\s+(\S+)'  # CUSIP: Next non-space string
-    desc_pattern = r'\s+(.+?)\s{2,}'  # SECURITY DESC: Characters until two or more spaces
-    qty_pattern = r'(\S+)\s{2,}'  # Generic pattern for quantity fields with two or more spaces
-    single_space_qty_pattern = r'(\S+)\s'  # Quantity field with a single space after it
-    last_qty_pattern = r'(\S+)\s*$'  # Last field (TOTAL) with trailing spaces
+    # Start processing the record
+    parts = record.split()
     
-    # Construct the combined regex pattern
-    combined_pattern = (
-        security_pattern + cusip_pattern + desc_pattern +
-        qty_pattern * 3 + single_space_qty_pattern +
-        qty_pattern * 3 + last_qty_pattern
-    )
+    # SECURITY
+    fields['SECURITY'] = parts.pop(0)
     
-    match = re.search(combined_pattern, record)
+    # CUSIP
+    fields['CUSIP'] = parts.pop(0)
     
-    if match:
-        fields['SECURITY'] = match.group(1)
-        fields['CUSIP'] = match.group(2)
-        fields['SECURITY_DESC'] = match.group(3).strip()
-        fields['STOCK_REC_QTY'] = match.group(4)
-        fields['CMS_SEG_QTY'] = match.group(5)
-        fields['CAMS_SEG_QTY'] = match.group(6)
-        fields['DTC_QTY'] = match.group(7)
-        fields['NON_DTC_GCL'] = match.group(8)
-        fields['OPT_SEG_QTY'] = match.group(9)
-        fields['TOTAL'] = match.group(10)
+    # SECURITY DESC - collect until a large gap (more than 2 spaces)
+    desc = []
+    while parts and not re.match(r'\S{2,}', parts[0]):
+        desc.append(parts.pop(0))
+    fields['SECURITY_DESC'] = ' '.join(desc)
+    
+    # STOCK REC QTY
+    if parts:
+        fields['STOCK_REC_QTY'] = parts.pop(0)
+    
+    # CMS SEG QTY
+    if parts:
+        fields['CMS_SEG_QTY'] = parts.pop(0)
+    
+    # CAMS SEG QTY
+    if parts:
+        fields['CAMS_SEG_QTY'] = parts.pop(0)
+    
+    # DTC QTY
+    if parts:
+        fields['DTC_QTY'] = parts.pop(0)
+    
+    # NON DTC GCL
+    if parts:
+        fields['NON_DTC_GCL'] = parts.pop(0)
+    
+    # OPT SEG QTY
+    if parts:
+        fields['OPT_SEG_QTY'] = parts.pop(0)
+    
+    # TOTAL
+    if parts:
+        fields['TOTAL'] = parts.pop(0)
     
     return fields
 
