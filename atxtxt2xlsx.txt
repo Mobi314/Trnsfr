@@ -16,4 +16,57 @@ ELSE
   NULL 
 ENDIF
 
-^(\S+)\s+(\S+)\s+(.+?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)$
+import pandas as pd
+
+# Get the Alteryx input
+df = Alteryx.read("#1")
+
+# Define a function to parse each CombinedRecord
+def parse_combined_record(record):
+    fields = {}
+    parts = record.split()
+    
+    # SECURITY
+    fields['SECURITY'] = parts.pop(0)
+    
+    # CUSIP
+    fields['CUSIP'] = parts.pop(0)
+    
+    # SECURITY DESC
+    desc = []
+    while parts and not parts[0].isdigit():
+        desc.append(parts.pop(0))
+    fields['SECURITY_DESC'] = ' '.join(desc)
+    
+    # STOCK REC QTY
+    fields['STOCK_REC_QTY'] = parts.pop(0)
+    
+    # DTC QTY
+    fields['DTC_QTY'] = parts.pop(0)
+    
+    # CMS SEG QTY
+    fields['CMS_SEG_QTY'] = parts.pop(0)
+    
+    # NON DTC GCL
+    fields['NON_DTC_GCL'] = parts.pop(0)
+    
+    # CAMS SEG QTY
+    fields['CAMS_SEG_QTY'] = parts.pop(0)
+    
+    # NOPS SEG QTY
+    fields['NOPS_SEG_QTY'] = parts.pop(0)
+    
+    # TOTAL
+    fields['TOTAL'] = parts.pop(0)
+    
+    return fields
+
+# Apply the function to each record
+parsed_data = df['CombinedRecord'].apply(parse_combined_record)
+parsed_df = pd.DataFrame(parsed_data.tolist())
+
+# Concatenate with the original dataframe
+result_df = pd.concat([df, parsed_df], axis=1)
+
+# Output the result
+Alteryx.write(result_df, 1)
