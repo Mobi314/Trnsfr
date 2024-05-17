@@ -2,11 +2,12 @@ IF STARTSWITH([Field_1], "1CLIENT") THEN 1 ELSE 0 ENDIF
 
 IF [Row-1:TitleFlag] = 1 THEN 1 ELSE 0 ENDIF
 
-IF STARTSWITH([Field_1], "SECURITY") THEN 1
-ELSEIF [Row-1:TitleFlag] = 1 THEN 1
-ELSEIF STARTSWITH([Row+1:Field_1], "SECURITY") THEN 1
-ELSEIF [Row-1:HeaderFlag] = 1 THEN 1
-ELSE 0
+IF STARTSWITH([Field_1], "SECURITY") THEN 1 
+ELSEIF STARTSWITH([Row-1:Field_1], "SECURITY") THEN 1
+ELSEIF [Row-1:HeaderFlag] = 1 THEN 1 
+ELSE 0 
 ENDIF
+
+[TitleFlag] = 0 AND [PairFlag] = 0 AND [HeaderFlag] = 0
 
 ^(\S+)\s+(\S+)\s+(.+?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)$
