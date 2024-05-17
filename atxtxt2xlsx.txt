@@ -23,14 +23,28 @@ df = Alteryx.read("#1")
 
 # Define a function to parse each CombinedRecord
 def parse_combined_record(record):
-    fields = {}
+    fields = {
+        'SECURITY': '',
+        'CUSIP': '',
+        'SECURITY_DESC': '',
+        'STOCK_REC_QTY': '',
+        'DTC_QTY': '',
+        'CMS_SEG_QTY': '',
+        'NON_DTC_GCL': '',
+        'CAMS_SEG_QTY': '',
+        'NOPS_SEG_QTY': '',
+        'TOTAL': ''
+    }
+    
     parts = record.split()
     
     # SECURITY
-    fields['SECURITY'] = parts.pop(0)
+    if parts:
+        fields['SECURITY'] = parts.pop(0)
     
     # CUSIP
-    fields['CUSIP'] = parts.pop(0)
+    if parts:
+        fields['CUSIP'] = parts.pop(0)
     
     # SECURITY DESC
     desc = []
@@ -39,25 +53,32 @@ def parse_combined_record(record):
     fields['SECURITY_DESC'] = ' '.join(desc)
     
     # STOCK REC QTY
-    fields['STOCK_REC_QTY'] = parts.pop(0)
+    if parts:
+        fields['STOCK_REC_QTY'] = parts.pop(0)
     
     # DTC QTY
-    fields['DTC_QTY'] = parts.pop(0)
+    if parts:
+        fields['DTC_QTY'] = parts.pop(0)
     
     # CMS SEG QTY
-    fields['CMS_SEG_QTY'] = parts.pop(0)
+    if parts:
+        fields['CMS_SEG_QTY'] = parts.pop(0)
     
     # NON DTC GCL
-    fields['NON_DTC_GCL'] = parts.pop(0)
+    if parts:
+        fields['NON_DTC_GCL'] = parts.pop(0)
     
     # CAMS SEG QTY
-    fields['CAMS_SEG_QTY'] = parts.pop(0)
+    if parts:
+        fields['CAMS_SEG_QTY'] = parts.pop(0)
     
     # NOPS SEG QTY
-    fields['NOPS_SEG_QTY'] = parts.pop(0)
+    if parts:
+        fields['NOPS_SEG_QTY'] = parts.pop(0)
     
     # TOTAL
-    fields['TOTAL'] = parts.pop(0)
+    if parts:
+        fields['TOTAL'] = parts.pop(0)
     
     return fields
 
