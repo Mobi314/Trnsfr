@@ -4,6 +4,7 @@ import pandas as pd
 df_raid = Alteryx.read("#1")  # RAID data
 df_programs = Alteryx.read("#2")  # Programs
 df_projects = Alteryx.read("#3")  # Projects
+df_program_projects = Alteryx.read("#4")  # Program/Project mixed data
 df_business_outcomes = Alteryx.read("#5")  # Business Outcomes
 
 # Initialize new columns in df_raid for linked keys
@@ -11,12 +12,12 @@ df_raid['Linked Program(s)'] = None
 df_raid['Linked Project(s)'] = None
 df_raid['Linked BO(s)'] = None
 
-# Function to link keys from RAID to specific hierarchy based on impacted columns
-def link_keys(df_raid, df_hierarchy, hierarchy_type, impacted_columns):
+# Function to link keys from RAID to a specific hierarchy based on impacted columns
+def link_keys(df_raid, df_hierarchy, hierarchy_type, impacted_columns, key_column):
     for index, row in df_raid.iterrows():
         linked_keys = set()  # Use set to avoid duplicates
         for col in impacted_columns:
-            if pd.notna(row[col]) and row[col] in df_hierarchy['Jira Key'].values:
+            if pd.notna(row[col]) and row[col] in df_hierarchy[key_column].values:
                 linked_keys.add(row[col])
         if linked_keys:
             current_keys = df_raid.at[index, f'Linked {hierarchy_type}(s)']
@@ -25,9 +26,31 @@ def link_keys(df_raid, df_hierarchy, hierarchy_type, impacted_columns):
             df_raid.at[index, f'Linked {hierarchy_type}(s)'] = ','.join(current_keys.union(linked_keys))
 
 # Apply the functions for each category
-link_keys(df_raid, df_business_outcomes, 'BO', ['Impacted Items_0_key', 'Impacted Items_1_key', 'Impacted Items_2_key', 'Impacted Items_3_key'])
-link_keys(df_raid, df_programs, 'Program', ['Impacted Project(s)_0_key', 'Impacted Project(s)_1_key', 'Impacted Project(s)_2_key', 'Impacted Project(s)_3_key'])
-link_keys(df_raid, df_projects, 'Project', ['Impacted Project(s)_0_key', 'Impacted Project(s)_1_key', 'Impacted Project(s)_2_key', 'Impacted Project(s)_3_key'])
+link_keys(df_raid, df_business_outcomes, 'BO', ['Impacted Items_0_key', 'Impacted Items_1_key', 'Impacted Items_2_key', 'Impacted Items_3_key'], 'Business Outcome JIRA Key')
+link_keys(df_raid, df_programs, 'Program', ['Impacted Project(s)_0_key', 'Impacted Project(s)_1_key', 'Impacted Project(s)_2_key', 'Impacted Project(s)_3_key'], 'Program JIRA Key')
+link_keys(df_raid, df_projects, 'Project', ['Impacted Project(s)_0_key', 'Impacted Project(s)_1_key', 'Impacted Project(s)_2_key', 'Impacted Project(s)_3_key'], 'Project JIRA Key')
+
+# Handle combined Program/Project input
+def link_program_project_keys(df_raid, df_program_projects):
+    for index, row in df_raid.iterrows():
+        linked_programs = set()  # Use set to avoid duplicates
+        linked_projects = set()  # Use set to avoid duplicates
+        for col in ['Impacted Project(s)_0_key', 'Impacted Project(s)_1_key', 'Impacted Project(s)_2_key', 'Impacted Project(s)_3_key']:
+            if pd.notna(row[col]):
+                if row[col] in df_program_projects['Program JIRA Key'].values:
+                    linked_programs.add(row[col])
+                if row[col] in df_program_projects['Project JIRA Key'].values:
+                    linked_projects.add(row[col])
+        if linked_programs:
+            current_keys = df_raid.at[index, 'Linked Program(s)']
+            current_keys = set(current_keys.split(',')) if current_keys else set()
+            df_raid.at[index, 'Linked Program(s)'] = ','.join(current_keys.union(linked_programs))
+        if linked_projects:
+            current_keys = df_raid.at[index, 'Linked Project(s)']
+            current_keys = set(current_keys.split(',')) if current_keys else set()
+            df_raid.at[index, 'Linked Project(s)'] = ','.join(current_keys.union(linked_projects))
+
+link_program_project_keys(df_raid, df_program_projects)
 
 # Output the processed data back to Alteryx
 Alteryx.write(df_raid, 1)
