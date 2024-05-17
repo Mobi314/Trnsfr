@@ -1,5 +1,8 @@
-IF STARTSWITH([Row-1:Field1], "1CLIENT") THEN 1
-ELSE IF STARTSWITH([Field1], "SECURITY") THEN 1
-ELSE 0 ENDIF
+IF STARTSWITH([Field_1], "1CLIENT") THEN 1
+ELSEIF STARTSWITH([Row+1:Field_1], "SECURITY") THEN 1
+ELSEIF STARTSWITH([Field_1], "SECURITY") THEN 1
+ELSEIF [Row-1:Flag] = 1 THEN 1
+ELSE 0
+ENDIF
 
 ^(\S+)\s+(\S+)\s+(.+?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)$
