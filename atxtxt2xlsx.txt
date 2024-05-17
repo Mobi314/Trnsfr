@@ -10,4 +10,10 @@ ENDIF
 
 [TitleFlag] = 0 AND [PairFlag] = 0 AND [HeaderFlag] = 0
 
+IF MOD([Row-1:RecordID], 2) = 1 THEN
+  [Row-1:Field_1] + " " + [Field_1]
+ELSE 
+  NULL 
+ENDIF
+
 ^(\S+)\s+(\S+)\s+(.+?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)$
