@@ -116,3 +116,42 @@ result_df = pd.concat([df, parsed_df], axis=1)
 
 # Output the result
 Alteryx.write(result_df, 1)
+
+
+
+
+
+import pandas as pd
+
+# Get the Alteryx input
+df = Alteryx.read("#1")
+
+# Function to validate and clean data
+def clean_data(row):
+    # Convert numeric fields to decimals with 5 decimal places
+    numeric_fields = ['STOCK_REC_QTY', 'CMS_SEG_QTY', 'CAMS_SEG_QTY', 'DTC_QTY', 'NON_DTC_GCL', 'OPT_SEG_QTY', 'TOTAL']
+    
+    for field in numeric_fields:
+        # Handle DTC_QTY separately to remove trailing dash and convert to negative
+        if field == 'DTC_QTY':
+            value = row[field].strip()
+            if value.endswith('-'):
+                value = '-' + value[:-1]
+            try:
+                row[field] = round(float(value.replace(',', '')), 5)
+            except ValueError:
+                row[field] = None
+        else:
+            # Convert other numeric fields to float and round to 5 decimal places
+            try:
+                row[field] = round(float(row[field].replace(',', '')), 5)
+            except ValueError:
+                row[field] = None
+    
+    return row
+
+# Apply the clean_data function to each row
+cleaned_df = df.apply(clean_data, axis=1)
+
+# Output the cleaned data to Alteryx
+Alteryx.write(cleaned_df, 1)
