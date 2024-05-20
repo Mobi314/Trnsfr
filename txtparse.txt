@@ -1,0 +1,101 @@
+import pandas as pd
+import re
+
+# Get the Alteryx input
+df = Alteryx.read("#1")
+
+# Define a function to check if a string represents a number
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
+# Define a function to parse each CombinedRecord
+def parse_combined_record(record):
+    fields = {
+        'SECURITY': '',
+        'CUSIP': '',
+        'SECURITY_DESC': '',
+        'STOCK_REC_QTY': '',
+        'CMS_SEG_QTY': '',
+        'CAMS_SEG_QTY': '',
+        'DTC_QTY': '',
+        'NON_DTC_GCL': '',
+        'OPT_SEG_QTY': '',
+        'TOTAL': ''
+    }
+    
+    # Split the record by spaces
+    parts = record.split()
+    idx = 0
+    
+    # SECURITY
+    fields['SECURITY'] = parts[idx]
+    idx += 1
+    
+    # CUSIP
+    fields['CUSIP'] = parts[idx]
+    idx += 1
+    
+    # SECURITY DESC
+    desc = []
+    while idx < len(parts):
+        part = parts[idx]
+        if idx + 2 < len(parts) and parts[idx + 1] == '' and parts[idx + 2] == '':
+            # Check for three consecutive spaces
+            break
+        desc.append(part)
+        idx += 1
+    fields['SECURITY_DESC'] = ' '.join(desc).strip()
+    
+    # Move index past the spaces following SECURITY DESC
+    while idx < len(parts) and parts[idx] == '':
+        idx += 1
+    
+    # STOCK REC QTY
+    if idx < len(parts):
+        fields['STOCK_REC_QTY'] = parts[idx]
+        idx += 1
+    
+    # CMS SEG QTY
+    if idx < len(parts):
+        fields['CMS_SEG_QTY'] = parts[idx]
+        idx += 1
+    
+    # CAMS SEG QTY
+    if idx < len(parts):
+        fields['CAMS_SEG_QTY'] = parts[idx]
+        idx += 1
+    
+    # DTC QTY
+    if idx < len(parts):
+        fields['DTC_QTY'] = parts[idx]
+        idx += 1
+    
+    # NON DTC GCL
+    if idx < len(parts):
+        fields['NON_DTC_GCL'] = parts[idx]
+        idx += 1
+    
+    # OPT SEG QTY
+    if idx < len(parts):
+        fields['OPT_SEG_QTY'] = parts[idx]
+        idx += 1
+    
+    # TOTAL
+    if idx < len(parts):
+        fields['TOTAL'] = parts[idx]
+    
+    return fields
+
+# Apply the function to each record
+parsed_data = df['CombinedRecord'].apply(parse_combined_record)
+parsed_df = pd.DataFrame(parsed_data.tolist())
+
+# Concatenate with the original dataframe
+result_df = pd.concat([df, parsed_df], axis=1)
+
+# Output the result
+Alteryx.write(result_df, 1)
