@@ -12,6 +12,10 @@ def is_number(s):
     except ValueError:
         return False
 
+# Define a function to check if a string is a number with a decimal point
+def is_number_with_decimal(s):
+    return bool(re.match(r'^\d+\.\d+$', s))
+
 # Define a function to parse each CombinedRecord
 def parse_combined_record(record):
     fields = {
@@ -53,6 +57,14 @@ def parse_combined_record(record):
             remaining_chars = 15 - char_count
             desc.append(part[:remaining_chars])
             char_count += remaining_chars
+            idx += 1
+        
+        # Check for a space followed by a number with a decimal point
+        if idx < len(parts) and re.match(r'^\d', parts[idx]):
+            potential_number = parts[idx]
+            if is_number_with_decimal(potential_number):
+                break
+    
     fields['SECURITY_DESC'] = ' '.join(desc).strip()
     
     # Move index past any large series of spaces
