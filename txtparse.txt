@@ -39,18 +39,23 @@ def parse_combined_record(record):
     fields['CUSIP'] = parts[idx]
     idx += 1
     
-    # SECURITY DESC
+    # SECURITY DESC with a maximum length of 15 characters
     desc = []
-    while idx < len(parts):
+    char_count = 0
+    while idx < len(parts) and char_count < 15:
         part = parts[idx]
-        if idx + 2 < len(parts) and parts[idx + 1] == '' and parts[idx + 2] == '':
-            # Check for three consecutive spaces
-            break
-        desc.append(part)
-        idx += 1
+        if char_count + len(part) <= 15:
+            desc.append(part)
+            char_count += len(part) + 1  # +1 for the space
+            idx += 1
+        else:
+            # Add part of the current part to fill up to 15 characters
+            remaining_chars = 15 - char_count
+            desc.append(part[:remaining_chars])
+            char_count += remaining_chars
     fields['SECURITY_DESC'] = ' '.join(desc).strip()
     
-    # Move index past the spaces following SECURITY DESC
+    # Move index past any large series of spaces
     while idx < len(parts) and parts[idx] == '':
         idx += 1
     
