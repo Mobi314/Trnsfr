@@ -1,3 +1,5 @@
+DateTimeParse(REGEX_Replace([Date_Column], '/', '-'), "%m-%d-%y")
+
 REGEX_Replace([Field_1], '.*(\d{2}/\d{2}/\d{2}).*', '$1')
 
 IF STARTSWITH([Field_1], "1CLIENT") THEN 1 ELSE 0 ENDIF
