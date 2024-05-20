@@ -16,6 +16,10 @@ def is_number(s):
 def is_number_with_decimal(s):
     return bool(re.match(r'^\d+\.\d+$', s))
 
+# Define a function to check if a string is a potential float starting with a decimal
+def is_decimal_start(s):
+    return bool(re.match(r'^\.\d{1,2}', s))
+
 # Define a function to parse each CombinedRecord
 def parse_combined_record(record):
     fields = {
@@ -59,11 +63,16 @@ def parse_combined_record(record):
             char_count += remaining_chars
             idx += 1
         
-        # Check for a space followed by a number with a decimal point
-        if idx < len(parts) and re.match(r'^\d', parts[idx]):
+        # Check for a space followed by a number or decimal with subsequent numbers
+        if idx < len(parts):
             potential_number = parts[idx]
-            if is_number_with_decimal(potential_number):
-                break
+            if re.match(r'^\d', potential_number):
+                if is_number_with_decimal(potential_number):
+                    break
+            elif re.match(r'^\.', potential_number):
+                # Check if the next characters form a valid number with decimal
+                if is_decimal_start(potential_number):
+                    break
     
     fields['SECURITY_DESC'] = ' '.join(desc).strip()
     
