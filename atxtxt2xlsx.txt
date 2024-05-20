@@ -1,3 +1,5 @@
+DateTimeFormat([Formatted_Date], '%m%d%y')
+
 DateTimeParse(REGEX_Replace([Date_Column], '/', '-'), "%m-%d-%y")
 
 REGEX_Replace([Field_1], '.*(\d{2}/\d{2}/\d{2}).*', '$1')
