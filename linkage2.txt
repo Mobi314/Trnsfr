@@ -54,11 +54,17 @@ for bo_key in df_relationships['Business Outcome JIRA Key'].unique():
 # Data check function to ensure completeness
 def data_check(df_output, df_raid, df_relationships):
     df_output = df_output.sort_values(by='RAID Key').reset_index(drop=True)
+    
+    def get_linked_keys(df, key_col):
+        # Handle cases where the column values are not strings
+        linked_keys = df[key_col].dropna().apply(lambda x: x.split(',') if isinstance(x, str) else []).sum()
+        return set(linked_keys)
+
     for raid_key in df_output['RAID Key'].unique():
         group = df_output[df_output['RAID Key'] == raid_key]
-        linked_programs = set(df_raid[df_raid['RAID Key'] == raid_key]['Linked Program(s)'].dropna().str.split(',').sum())
-        linked_projects = set(df_raid[df_raid['RAID Key'] == raid_key]['Linked Project(s)'].dropna().str.split(',').sum())
-        linked_bos = set(df_raid[df_raid['RAID Key'] == raid_key]['Linked BO(s)'].dropna().str.split(',').sum())
+        linked_programs = get_linked_keys(df_raid[df_raid['RAID Key'] == raid_key], 'Linked Program(s)')
+        linked_projects = get_linked_keys(df_raid[df_raid['RAID Key'] == raid_key], 'Linked Project(s)')
+        linked_bos = get_linked_keys(df_raid[df_raid['RAID Key'] == raid_key], 'Linked BO(s)')
 
         for program in linked_programs:
             if program and program not in group['Program JIRA Key'].values:
@@ -66,7 +72,7 @@ def data_check(df_output, df_raid, df_relationships):
                     df_output = df_output.append(add_to_output(df_raid[df_raid['RAID Key'] == raid_key].iloc[0], program, None, None), ignore_index=True)
                 else:
                     missing_row = add_to_output(df_raid[df_raid['RAID Key'] == raid_key].iloc[0], program, None, None)
-                    df_missing_keys.append(missing_row, ignore_index=True)
+                    df_missing_keys = df_missing_keys.append(missing_row, ignore_index=True)
 
         for project in linked_projects:
             if project and project not in group['Project JIRA Key'].values:
