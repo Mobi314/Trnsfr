@@ -14,7 +14,15 @@ def add_to_output(df, raid_row, program_key, project_key, bo_key):
     new_row['Program JIRA Key'] = program_key
     new_row['Project JIRA Key'] = project_key
     new_row['Business Outcome JIRA Key'] = bo_key
-    return df.append(new_row, ignore_index=True)
+    
+    # Check for duplicates before adding
+    if not ((df['RAID Key'] == new_row['RAID Key']) &
+            (df['Program JIRA Key'] == new_row['Program JIRA Key']) &
+            (df['Project JIRA Key'] == new_row['Project JIRA Key']) &
+            (df['Business Outcome JIRA Key'] == new_row['Business Outcome JIRA Key'])).any():
+        return df.append(new_row, ignore_index=True)
+    else:
+        return df
 
 # Helper function to get linked keys
 def get_linked_keys(df, key_col):
