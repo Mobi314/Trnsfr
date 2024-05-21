@@ -56,8 +56,10 @@ def data_check(df_output, df_raid, df_relationships):
     df_output = df_output.sort_values(by='RAID Key').reset_index(drop=True)
     
     def get_linked_keys(df, key_col):
-        # Handle cases where the column values are not strings
-        linked_keys = df[key_col].dropna().apply(lambda x: x.split(',') if isinstance(x, str) else []).sum()
+        linked_keys = []
+        for item in df[key_col].dropna():
+            if isinstance(item, str):
+                linked_keys.extend(item.split(','))
         return set(linked_keys)
 
     for raid_key in df_output['RAID Key'].unique():
