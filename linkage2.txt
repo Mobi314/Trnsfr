@@ -66,7 +66,7 @@ def data_check(df_output, df_raid, df_relationships):
                     df_output = df_output.append(add_to_output(df_raid[df_raid['RAID Key'] == raid_key].iloc[0], program, None, None), ignore_index=True)
                 else:
                     missing_row = add_to_output(df_raid[df_raid['RAID Key'] == raid_key].iloc[0], program, None, None)
-                    df_missing_keys = df_missing_keys.append(missing_row, ignore_index=True)
+                    df_missing_keys.append(missing_row, ignore_index=True)
 
         for project in linked_projects:
             if project and project not in group['Project JIRA Key'].values:
