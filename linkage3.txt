@@ -195,3 +195,71 @@ df_output.drop_duplicates(inplace=True)
 
 # Write the processed data back to Alteryx
 Alteryx.write(df_output, 1)  # Output: Linked RAID Keys with Projects and Business Outcomes
+
+
+
+
+
+
+
+import pandas as pd
+
+# Read input data frames
+df_raid = Alteryx.read("#1")  # Output from the initial RAID linking script
+df_relationships = Alteryx.read("#2")  # Relationship table
+
+# Initialize output DataFrame
+df_output = pd.DataFrame(columns=['RAID Key', 'Program JIRA Key', 'Business Outcome JIRA Key'])
+
+# Process Relationships
+for raid_key in df_raid['RAID Key'].unique():
+    # Get all Program JIRA Keys and Business Outcome JIRA Keys linked to the RAID Key
+    linked_programs = df_raid[df_raid['RAID Key'] == raid_key]['Linked Program(s)'].dropna().unique()
+    linked_bos = df_raid[df_raid['RAID Key'] == raid_key]['Linked BO(s)'].dropna().unique()
+    
+    # Convert linked keys from comma-separated strings to lists
+    linked_programs = [key for sublist in linked_programs for key in sublist.split(',')]
+    linked_bos = [key for sublist in linked_bos for key in sublist.split(',')]
+    
+    # Process each Program JIRA Key
+    for program_key in linked_programs:
+        if program_key in df_relationships['Program JIRA Key'].values:
+            # Process each Business Outcome JIRA Key linked to the same RAID Key
+            for bo_key in linked_bos:
+                if bo_key in df_relationships['Business Outcome JIRA Key'].values:
+                    # Check if the Business Outcome JIRA Key shares a relationship with the Program JIRA Key
+                    relationship_exists = df_relationships[
+                        (df_relationships['Program JIRA Key'] == program_key) & 
+                        (df_relationships['Business Outcome JIRA Key'] == bo_key)
+                    ].shape[0] > 0
+                    if relationship_exists:
+                        # Add a record to the output DataFrame
+                        df_output = df_output.append({
+                            'RAID Key': raid_key,
+                            'Program JIRA Key': program_key,
+                            'Business Outcome JIRA Key': bo_key
+                        }, ignore_index=True)
+    
+    # Add unique Program JIRA Keys that do not share a relationship
+    for program_key in linked_programs:
+        if program_key not in df_output['Program JIRA Key'].values:
+            df_output = df_output.append({
+                'RAID Key': raid_key,
+                'Program JIRA Key': program_key,
+                'Business Outcome JIRA Key': None
+            }, ignore_index=True)
+    
+    # Add unique Business Outcome JIRA Keys that do not share a relationship
+    for bo_key in linked_bos:
+        if bo_key not in df_output['Business Outcome JIRA Key'].values:
+            df_output = df_output.append({
+                'RAID Key': raid_key,
+                'Program JIRA Key': None,
+                'Business Outcome JIRA Key': bo_key
+            }, ignore_index=True)
+
+# Remove duplicates
+df_output.drop_duplicates(inplace=True)
+
+# Write the processed data back to Alteryx
+Alteryx.write(df_output, 1)  # Output: Linked RAID Keys with Programs and Business Outcomes
