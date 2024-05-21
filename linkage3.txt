@@ -1,0 +1,100 @@
+import pandas as pd
+
+# Read input data frames
+df_raid = Alteryx.read("#1")  # Output from the first Python script
+df_relationships = Alteryx.read("#2")  # Relationship table
+
+# Initialize new DataFrame for output
+output_columns = df_raid.columns.tolist() + df_relationships.columns.difference(df_raid.columns).tolist()
+df_output = pd.DataFrame(columns=output_columns)
+df_missing_keys = pd.DataFrame(columns=output_columns)
+
+# Helper function to add rows to the output DataFrame
+def add_to_output(raid_row, program_key, project_key, bo_key):
+    new_row = raid_row.copy()
+    new_row['Program JIRA Key'] = program_key
+    new_row['Project JIRA Key'] = project_key
+    new_row['Business Outcome JIRA Key'] = bo_key
+    return df_output.append(new_row, ignore_index=True)
+
+# Helper function to get linked keys
+def get_linked_keys(df, key_col):
+    linked_keys = []
+    for item in df[key_col].dropna():
+        if isinstance(item, str):
+            linked_keys.extend(item.split(','))
+    return set(linked_keys)
+
+# Process each hierarchy level concurrently
+for _, row in df_relationships.iterrows():
+    program_key = row['Program JIRA Key']
+    project_key = row['Project JIRA Key']
+    bo_key = row['Business Outcome JIRA Key']
+    
+    if pd.notna(program_key):
+        related_raids = df_raid[df_raid['Linked Program(s)'].str.contains(program_key, na=False)]['RAID Key'].unique()
+        for raid_key in related_raids:
+            if pd.notna(project_key):
+                df_output = add_to_output(df_raid[df_raid['RAID Key'] == raid_key].iloc[0], program_key, project_key, None)
+            if pd.notna(bo_key):
+                df_output = add_to_output(df_raid[df_raid['RAID Key'] == raid_key].iloc[0], program_key, None, bo_key)
+
+    if pd.notna(project_key):
+        related_raids = df_raid[df_raid['Linked Project(s)'].str.contains(project_key, na=False)]['RAID Key'].unique()
+        for raid_key in related_raids:
+            if pd.notna(program_key):
+                df_output = add_to_output(df_raid[df_raid['RAID Key'] == raid_key].iloc[0], program_key, project_key, None)
+            if pd.notna(bo_key):
+                df_output = add_to_output(df_raid[df_raid['RAID Key'] == raid_key].iloc[0], None, project_key, bo_key)
+
+    if pd.notna(bo_key):
+        related_raids = df_raid[df_raid['Linked BO(s)'].str.contains(bo_key, na=False)]['RAID Key'].unique()
+        for raid_key in related_raids:
+            if pd.notna(program_key):
+                df_output = add_to_output(df_raid[df_raid['RAID Key'] == raid_key].iloc[0], program_key, None, bo_key)
+            if pd.notna(project_key):
+                df_output = add_to_output(df_raid[df_raid['RAID Key'] == raid_key].iloc[0], None, project_key, bo_key)
+
+# Enhanced data quality check function to ensure completeness
+def enhanced_data_check(df_output, df_raid, df_relationships):
+    df_output = df_output.sort_values(by='RAID Key').reset_index(drop=True)
+    df_missing_keys = pd.DataFrame(columns=df_output.columns)
+
+    for raid_key in df_output['RAID Key'].unique():
+        group = df_output[df_output['RAID Key'] == raid_key]
+        linked_programs = get_linked_keys(df_raid[df_raid['RAID Key'] == raid_key], 'Linked Program(s)')
+        linked_projects = get_linked_keys(df_raid[df_raid['RAID Key'] == raid_key], 'Linked Project(s)')
+        linked_bos = get_linked_keys(df_raid[df_raid['RAID Key'] == raid_key], 'Linked BO(s)')
+
+        for program in linked_programs:
+            if program and program not in group['Program JIRA Key'].values:
+                if program in df_relationships['Program JIRA Key'].values:
+                    df_output = add_to_output(df_output, df_raid[df_raid['RAID Key'] == raid_key].iloc[0], program, None, None)
+                else:
+                    missing_row = add_to_output(df_missing_keys, df_raid[df_raid['RAID Key'] == raid_key].iloc[0], program, None, None)
+                    df_missing_keys = df_missing_keys.append(missing_row, ignore_index=True)
+
+        for project in linked_projects:
+            if project and project not in group['Project JIRA Key'].values:
+                if project in df_relationships['Project JIRA Key'].values:
+                    df_output = add_to_output(df_output, df_raid[df_raid['RAID Key'] == raid_key].iloc[0], None, project, None)
+                else:
+                    missing_row = add_to_output(df_missing_keys, df_raid[df_raid['RAID Key'] == raid_key].iloc[0], None, project, None)
+                    df_missing_keys = df_missing_keys.append(missing_row, ignore_index=True)
+
+        for bo in linked_bos:
+            if bo and bo not in group['Business Outcome JIRA Key'].values:
+                if bo in df_relationships['Business Outcome JIRA Key'].values:
+                    df_output = add_to_output(df_output, df_raid[df_raid['RAID Key'] == raid_key].iloc[0], None, None, bo)
+                else:
+                    missing_row = add_to_output(df_missing_keys, df_raid[df_raid['RAID Key'] == raid_key].iloc[0], None, None, bo)
+                    df_missing_keys = df_missing_keys.append(missing_row, ignore_index=True)
+
+    return df_output, df_missing_keys
+
+# Apply enhanced data check function
+df_output, df_missing_keys = enhanced_data_check(df_output, df_raid, df_relationships)
+
+# Write the processed data back to Alteryx
+Alteryx.write(df_output, 1)  # Single output for comprehensive data
+Alteryx.write(df_missing_keys, 2)  # Output for missing keys
