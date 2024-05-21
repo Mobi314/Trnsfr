@@ -4,66 +4,52 @@ import pandas as pd
 df_raid = Alteryx.read("#1")  # Output from the first Python script
 df_relationships = Alteryx.read("#2")  # Relationship table
 
-# Initialize new columns for Output 1
-for i in range(1, 5):
-    df_raid[f'Link Set {i} Program JIRA Key'] = None
-    df_raid[f'Link Set {i} Project JIRA Key'] = None
-    df_raid[f'Link Set {i} Business Outcome'] = None
+# Initialize new DataFrame for output
+output_columns = ['RAID Key', 'Program JIRA Key', 'Project JIRA Key', 'Business Outcome JIRA Key']
+df_output = pd.DataFrame(columns=output_columns)
 
-# Function to process and link keys
-def process_links(df_raid, df_relationships):
-    output1_rows = []
-    output2_rows = []
+# Function to add rows to the output DataFrame
+def add_to_output(raid_key, program_key, project_key, bo_key):
+    new_row = {
+        'RAID Key': raid_key,
+        'Program JIRA Key': program_key,
+        'Project JIRA Key': project_key,
+        'Business Outcome JIRA Key': bo_key
+    }
+    return new_row
 
-    for index, raid_row in df_raid.iterrows():
-        # Collect linked programs, projects, and BOs for the current RAID item
-        linked_programs = set(raid_row['Linked Program(s)'].split(',')) if raid_row['Linked Program(s)'] else set()
-        linked_projects = set(raid_row['Linked Project(s)'].split(',')) if raid_row['Linked Project(s)'] else set()
-        linked_bos = set(raid_row['Linked BO(s)'].split(',')) if raid_row['Linked BO(s)'] else set()
-        
-        # Initialize sets to keep track of used link sets
-        used_programs = set()
-        used_projects = set()
-        used_bos = set()
+# Process each unique Program JIRA key
+for program_key in df_relationships['Program JIRA Key'].unique():
+    if pd.notna(program_key):
+        # Find RAID keys associated with the Program
+        related_raids = df_raid[df_raid['Linked Program(s)'].str.contains(program_key, na=False)]['RAID Key'].unique()
+        for raid_key in related_raids:
+            # Find Projects linked to both the Program and RAID key
+            project_keys = df_relationships[(df_relationships['Program JIRA Key'] == program_key) & 
+                                            (df_relationships['RAID Key'] == raid_key)]['Project JIRA Key'].unique()
+            for project_key in project_keys:
+                if pd.notna(project_key):
+                    df_output = df_output.append(add_to_output(raid_key, program_key, project_key, None), ignore_index=True)
 
-        # Iterate over relationships to find double positive matches
-        for _, rel_row in df_relationships.iterrows():
-            rel_program = rel_row.get('Program JIRA Key')
-            rel_project = rel_row.get('Project JIRA Key')
-            rel_bo = rel_row.get('Business Outcome JIRA Key')
+# Process each unique Project JIRA key that might not have a Program relationship
+for project_key in df_relationships['Project JIRA Key'].unique():
+    if pd.notna(project_key):
+        related_raids = df_raid[df_raid['Linked Project(s)'].str.contains(project_key, na=False)]['RAID Key'].unique()
+        for raid_key in related_raids:
+            if not any((df_output['RAID Key'] == raid_key) & (df_output['Project JIRA Key'] == project_key)):
+                df_output = df_output.append(add_to_output(raid_key, None, project_key, None), ignore_index=True)
 
-            # Determine if the relationship is valid for the current RAID item
-            if ((rel_program in linked_programs) or pd.isna(rel_program)) and \
-               ((rel_project in linked_projects) or pd.isna(rel_project)) and \
-               ((rel_bo in linked_bos) or pd.isna(rel_bo)):
-                
-                # Assign to output1 columns
-                for i in range(1, 5):
-                    if (not rel_program or rel_program not in used_programs) and \
-                       (not rel_project or rel_project not in used_projects) and \
-                       (not rel_bo or rel_bo not in used_bos):
-                        if pd.isna(raid_row[f'Link Set {i} Program JIRA Key']):
-                            if rel_program: df_raid.at[index, f'Link Set {i} Program JIRA Key'] = rel_program
-                            if rel_project: df_raid.at[index, f'Link Set {i} Project JIRA Key'] = rel_project
-                            if rel_bo: df_raid.at[index, f'Link Set {i} Business Outcome'] = rel_bo
-                            used_programs.add(rel_program)
-                            used_projects.add(rel_project)
-                            used_bos.add(rel_bo)
-                            break
-                
-                # Assign to output2 rows
-                output2_rows.append({
-                    'RAID Key': raid_row['RAID Key'],
-                    'Program JIRA Key': rel_program,
-                    'Project JIRA Key': rel_project,
-                    'Business Outcome JIRA Key': rel_bo
-                })
-
-    return df_raid, pd.DataFrame(output2_rows)
-
-# Process the links
-df_raid, df_output2 = process_links(df_raid, df_relationships)
+# Process each unique Business Outcome JIRA key
+for bo_key in df_relationships['Business Outcome JIRA Key'].unique():
+    if pd.notna(bo_key):
+        related_raids = df_raid[df_raid['Linked BO(s)'].str.contains(bo_key, na=False)]['RAID Key'].unique()
+        for raid_key in related_raids:
+            related_rows = df_relationships[(df_relationships['Business Outcome JIRA Key'] == bo_key) & 
+                                            (df_relationships['RAID Key'] == raid_key)]
+            for _, row in related_rows.iterrows():
+                program_key = row['Program JIRA Key']
+                project_key = row['Project JIRA Key']
+                df_output = df_output.append(add_to_output(raid_key, program_key, project_key, bo_key), ignore_index=True)
 
 # Write the processed data back to Alteryx
-Alteryx.write(df_raid, 1)  # Output 1
-Alteryx.write(df_output2, 2)  # Output 2
+Alteryx.write(df_output, 1)  # Single output
