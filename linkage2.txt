@@ -61,6 +61,8 @@ def data_check(df_output, df_raid, df_relationships):
             if isinstance(item, str):
                 linked_keys.extend(item.split(','))
         return set(linked_keys)
+    
+    df_missing_keys = pd.DataFrame(columns=df_output.columns)  # Initialize here
 
     for raid_key in df_output['RAID Key'].unique():
         group = df_output[df_output['RAID Key'] == raid_key]
