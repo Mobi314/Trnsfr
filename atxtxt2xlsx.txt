@@ -1,3 +1,8 @@
+ProgramPresent	Contains([Linked Program(s)], [Program JIRA Key])
+ProjectPresent	Contains([Linked Project(s)], [Project JIRA Key])
+BOPresent	      Contains([Linked BO(s)], [Business Outcome JIRA Key])
+
+
 !isnull([Program JIRA Key]) && !isnull([Business Outcome JIRA Key])
 
 DateTimeFormat([Formatted_Date], '%m%d%y')
