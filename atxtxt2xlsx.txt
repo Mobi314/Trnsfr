@@ -1,3 +1,5 @@
+!isnull([Program JIRA Key]) && !isnull([Business Outcome JIRA Key])
+
 DateTimeFormat([Formatted_Date], '%m%d%y')
 
 DateTimeParse(REGEX_Replace([Date_Column], '/', '-'), "%m-%d-%y")
