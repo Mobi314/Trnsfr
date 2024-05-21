@@ -10,12 +10,12 @@ df_output = pd.DataFrame(columns=output_columns)
 df_missing_keys = pd.DataFrame(columns=output_columns)
 
 # Helper function to add rows to the output DataFrame
-def add_to_output(raid_row, program_key, project_key, bo_key):
+def add_to_output(df, raid_row, program_key, project_key, bo_key):
     new_row = raid_row.copy()
     new_row['Program JIRA Key'] = program_key
     new_row['Project JIRA Key'] = project_key
     new_row['Business Outcome JIRA Key'] = bo_key
-    return df_output.append(new_row, ignore_index=True)
+    return df.append(new_row, ignore_index=True)
 
 # Helper function to get linked keys
 def get_linked_keys(df, key_col):
@@ -25,35 +25,49 @@ def get_linked_keys(df, key_col):
             linked_keys.extend(item.split(','))
     return set(linked_keys)
 
+# Helper function to process each hierarchy level
+def process_hierarchy(df_raid, df_relationships, df_output, hierarchy_level):
+    for _, row in df_relationships.iterrows():
+        program_key = row['Program JIRA Key']
+        project_key = row['Project JIRA Key']
+        bo_key = row['Business Outcome JIRA Key']
+        raid_keys = df_raid['RAID Key'].unique()
+
+        if hierarchy_level == 'Program':
+            if pd.notna(program_key):
+                related_raids = df_raid[df_raid['Linked Program(s)'].str.contains(program_key, na=False)]['RAID Key'].unique()
+                for raid_key in related_raids:
+                    if raid_key in raid_keys:
+                        if pd.notna(project_key):
+                            df_output = add_to_output(df_output, df_raid[df_raid['RAID Key'] == raid_key].iloc[0], program_key, project_key, None)
+                        if pd.notna(bo_key):
+                            df_output = add_to_output(df_output, df_raid[df_raid['RAID Key'] == raid_key].iloc[0], program_key, None, bo_key)
+
+        elif hierarchy_level == 'Project':
+            if pd.notna(project_key):
+                related_raids = df_raid[df_raid['Linked Project(s)'].str.contains(project_key, na=False)]['RAID Key'].unique()
+                for raid_key in related_raids:
+                    if raid_key in raid_keys:
+                        if pd.notna(program_key):
+                            df_output = add_to_output(df_output, df_raid[df_raid['RAID Key'] == raid_key].iloc[0], program_key, project_key, None)
+                        if pd.notna(bo_key):
+                            df_output = add_to_output(df_output, df_raid[df_raid['RAID Key'] == raid_key].iloc[0], None, project_key, bo_key)
+
+        elif hierarchy_level == 'Business Outcome':
+            if pd.notna(bo_key):
+                related_raids = df_raid[df_raid['Linked BO(s)'].str.contains(bo_key, na=False)]['RAID Key'].unique()
+                for raid_key in related_raids:
+                    if raid_key in raid_keys:
+                        if pd.notna(program_key):
+                            df_output = add_to_output(df_output, df_raid[df_raid['RAID Key'] == raid_key].iloc[0], program_key, None, bo_key)
+                        if pd.notna(project_key):
+                            df_output = add_to_output(df_output, df_raid[df_raid['RAID Key'] == raid_key].iloc[0], None, project_key, bo_key)
+    return df_output
+
 # Process each hierarchy level concurrently
-for _, row in df_relationships.iterrows():
-    program_key = row['Program JIRA Key']
-    project_key = row['Project JIRA Key']
-    bo_key = row['Business Outcome JIRA Key']
-    
-    if pd.notna(program_key):
-        related_raids = df_raid[df_raid['Linked Program(s)'].str.contains(program_key, na=False)]['RAID Key'].unique()
-        for raid_key in related_raids:
-            if pd.notna(project_key):
-                df_output = add_to_output(df_raid[df_raid['RAID Key'] == raid_key].iloc[0], program_key, project_key, None)
-            if pd.notna(bo_key):
-                df_output = add_to_output(df_raid[df_raid['RAID Key'] == raid_key].iloc[0], program_key, None, bo_key)
-
-    if pd.notna(project_key):
-        related_raids = df_raid[df_raid['Linked Project(s)'].str.contains(project_key, na=False)]['RAID Key'].unique()
-        for raid_key in related_raids:
-            if pd.notna(program_key):
-                df_output = add_to_output(df_raid[df_raid['RAID Key'] == raid_key].iloc[0], program_key, project_key, None)
-            if pd.notna(bo_key):
-                df_output = add_to_output(df_raid[df_raid['RAID Key'] == raid_key].iloc[0], None, project_key, bo_key)
-
-    if pd.notna(bo_key):
-        related_raids = df_raid[df_raid['Linked BO(s)'].str.contains(bo_key, na=False)]['RAID Key'].unique()
-        for raid_key in related_raids:
-            if pd.notna(program_key):
-                df_output = add_to_output(df_raid[df_raid['RAID Key'] == raid_key].iloc[0], program_key, None, bo_key)
-            if pd.notna(project_key):
-                df_output = add_to_output(df_raid[df_raid['RAID Key'] == raid_key].iloc[0], None, project_key, bo_key)
+df_output = process_hierarchy(df_raid, df_relationships, df_output, 'Program')
+df_output = process_hierarchy(df_raid, df_relationships, df_output, 'Project')
+df_output = process_hierarchy(df_raid, df_relationships, df_output, 'Business Outcome')
 
 # Enhanced data quality check function to ensure completeness
 def enhanced_data_check(df_output, df_raid, df_relationships):
