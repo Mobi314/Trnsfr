@@ -5,9 +5,9 @@ df_raid = Alteryx.read("#1")  # Output from the initial RAID linking script
 df_relationships = Alteryx.read("#2")  # Relationship table
 
 # Initialize output DataFrames
-df_output_programs = pd.DataFrame(columns=['RAID Key', 'Program JIRA Key', 'Linked Project JIRA Key', 'Linked Business Outcome JIRA Key'])
-df_output_projects = pd.DataFrame(columns=['RAID Key', 'Project JIRA Key'])
-df_output_bos = pd.DataFrame(columns=['RAID Key', 'Business Outcome JIRA Key'])
+df_output_programs = pd.DataFrame(columns=['RAID Key', 'Program JIRA Key', 'Project JIRA Key', 'Business Outcome JIRA Key'])
+df_output_projects = pd.DataFrame(columns=['RAID Key', 'Program JIRA Key', 'Project JIRA Key', 'Business Outcome JIRA Key'])
+df_output_bos = pd.DataFrame(columns=['RAID Key', 'Program JIRA Key', 'Project JIRA Key', 'Business Outcome JIRA Key'])
 
 # Process Programs
 for _, row in df_relationships.iterrows():
@@ -19,23 +19,39 @@ for _, row in df_relationships.iterrows():
             linked_project_keys = df_relationships[(df_relationships['Program JIRA Key'] == program_key)]['Project JIRA Key'].dropna().unique()
             linked_bo_keys = df_relationships[(df_relationships['Program JIRA Key'] == program_key)]['Business Outcome JIRA Key'].dropna().unique()
 
-            # Create a record for the output DataFrame
-            df_output_programs = df_output_programs.append({
-                'RAID Key': raid_key,
-                'Program JIRA Key': program_key,
-                'Linked Project JIRA Key': ','.join(linked_project_keys),
-                'Linked Business Outcome JIRA Key': ','.join(linked_bo_keys)
-            }, ignore_index=True)
+            # Add a record for each linked Project JIRA Key
+            for project_key in linked_project_keys:
+                df_output_programs = df_output_programs.append({
+                    'RAID Key': raid_key,
+                    'Program JIRA Key': program_key,
+                    'Project JIRA Key': project_key,
+                    'Business Outcome JIRA Key': None
+                }, ignore_index=True)
 
-            # Add linked Project and Business Outcome JIRA Keys
+            # Add a record for each linked Business Outcome JIRA Key
+            for bo_key in linked_bo_keys:
+                df_output_programs = df_output_programs.append({
+                    'RAID Key': raid_key,
+                    'Program JIRA Key': program_key,
+                    'Project JIRA Key': None,
+                    'Business Outcome JIRA Key': bo_key
+                }, ignore_index=True)
+
+            # Add linked Project JIRA Keys to df_output_projects
             for project_key in linked_project_keys:
                 df_output_projects = df_output_projects.append({
                     'RAID Key': raid_key,
-                    'Project JIRA Key': project_key
+                    'Program JIRA Key': program_key,
+                    'Project JIRA Key': project_key,
+                    'Business Outcome JIRA Key': None
                 }, ignore_index=True)
+
+            # Add linked Business Outcome JIRA Keys to df_output_bos
             for bo_key in linked_bo_keys:
                 df_output_bos = df_output_bos.append({
                     'RAID Key': raid_key,
+                    'Program JIRA Key': program_key,
+                    'Project JIRA Key': None,
                     'Business Outcome JIRA Key': bo_key
                 }, ignore_index=True)
 
@@ -46,10 +62,11 @@ for _, row in df_relationships.iterrows():
         # Find RAID keys associated with the Project
         related_raids = df_raid[df_raid['Linked Project(s)'].str.contains(project_key, na=False)]['RAID Key'].unique()
         for raid_key in related_raids:
-            # Create a record for the output DataFrame
             df_output_projects = df_output_projects.append({
                 'RAID Key': raid_key,
-                'Project JIRA Key': project_key
+                'Program JIRA Key': None,
+                'Project JIRA Key': project_key,
+                'Business Outcome JIRA Key': None
             }, ignore_index=True)
 
 # Process Business Outcomes
@@ -59,9 +76,10 @@ for _, row in df_relationships.iterrows():
         # Find RAID keys associated with the Business Outcome
         related_raids = df_raid[df_raid['Linked BO(s)'].str.contains(bo_key, na=False)]['RAID Key'].unique()
         for raid_key in related_raids:
-            # Create a record for the output DataFrame
             df_output_bos = df_output_bos.append({
                 'RAID Key': raid_key,
+                'Program JIRA Key': None,
+                'Project JIRA Key': None,
                 'Business Outcome JIRA Key': bo_key
             }, ignore_index=True)
 
