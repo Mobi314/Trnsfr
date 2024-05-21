@@ -25,8 +25,7 @@ for program_key in df_relationships['Program JIRA Key'].unique():
         related_raids = df_raid[df_raid['Linked Program(s)'].str.contains(program_key, na=False)]['RAID Key'].unique()
         for raid_key in related_raids:
             # Find Projects linked to both the Program and RAID key
-            project_keys = df_relationships[(df_relationships['Program JIRA Key'] == program_key) & 
-                                            (df_relationships['RAID Key'] == raid_key)]['Project JIRA Key'].unique()
+            project_keys = df_relationships[(df_relationships['Program JIRA Key'] == program_key)]['Project JIRA Key'].unique()
             for project_key in project_keys:
                 if pd.notna(project_key):
                     df_output = df_output.append(add_to_output(raid_key, program_key, project_key, None), ignore_index=True)
@@ -44,8 +43,7 @@ for bo_key in df_relationships['Business Outcome JIRA Key'].unique():
     if pd.notna(bo_key):
         related_raids = df_raid[df_raid['Linked BO(s)'].str.contains(bo_key, na=False)]['RAID Key'].unique()
         for raid_key in related_raids:
-            related_rows = df_relationships[(df_relationships['Business Outcome JIRA Key'] == bo_key) & 
-                                            (df_relationships['RAID Key'] == raid_key)]
+            related_rows = df_relationships[(df_relationships['Business Outcome JIRA Key'] == bo_key)]
             for _, row in related_rows.iterrows():
                 program_key = row['Program JIRA Key']
                 project_key = row['Project JIRA Key']
