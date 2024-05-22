@@ -59,6 +59,10 @@ def parse_combined_record(record):
             columns_found += 1
         idx -= 1
     
+    # Ensure stock_rec_qty_index is set correctly
+    if stock_rec_qty_index is None:
+        raise ValueError("STOCK_REC_QTY not found in the record")
+    
     # Adjust idx to the last non-empty part before STOCK_REC_QTY
     idx = stock_rec_qty_index - 1
     while idx >= 0 and parts[idx] == '':
