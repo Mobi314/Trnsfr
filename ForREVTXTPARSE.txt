@@ -30,6 +30,12 @@ def parse_combined_record(record):
     idx = len(parts) - 1
     columns_found = 0
     
+    # Helper function to find the end of each column
+    def find_column_end(idx):
+        while idx >= 0 and parts[idx] == '':
+            idx -= 1
+        return idx
+    
     while idx >= 0 and columns_found < 7:
         part = parts[idx].strip()
         if part and is_valid_numeric(part):
@@ -58,7 +64,7 @@ def parse_combined_record(record):
     forward_idx += 1
     
     # SECURITY DESC is everything in between the identified indices
-    security_desc_parts = parts[forward_idx:idx + 1]
+    security_desc_parts = parts[forward_idx:idx + 2]  # +2 to account for the index being one step behind
     fields['SECURITY_DESC'] = ' '.join(security_desc_parts).strip()
     
     return fields
