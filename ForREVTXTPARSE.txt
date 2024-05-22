@@ -28,53 +28,26 @@ def parse_combined_record(record):
     
     # Reverse parse to find TOTAL, OPT SEG QTY, NON DTC GCL, DTC QTY, CAMS SEG QTY, CMS SEG QTY, and STOCK REC QTY
     idx = len(parts) - 1
+    columns_found = 0
     
-    # Helper function to find the end of each column
-    def find_column_end(idx):
-        while idx >= 0 and parts[idx] == '':
-            idx -= 1
-        return idx
-    
-    # TOTAL
-    idx = find_column_end(idx)
-    if idx >= 0 and is_valid_numeric(parts[idx]):
-        fields['TOTAL'] = parts[idx]
-        idx -= 1
-    
-    # OPT SEG QTY
-    idx = find_column_end(idx)
-    if idx >= 0 and is_valid_numeric(parts[idx]):
-        fields['OPT_SEG_QTY'] = parts[idx]
-        idx -= 1
-    
-    # NON DTC GCL
-    idx = find_column_end(idx)
-    if idx >= 0 and is_valid_numeric(parts[idx]):
-        fields['NON_DTC_GCL'] = parts[idx]
-        idx -= 1
-    
-    # DTC QTY
-    idx = find_column_end(idx)
-    if idx >= 0 and is_valid_numeric(parts[idx]):
-        fields['DTC_QTY'] = parts[idx]
-        idx -= 1
-    
-    # CAMS SEG QTY
-    idx = find_column_end(idx)
-    if idx >= 0 and is_valid_numeric(parts[idx]):
-        fields['CAMS_SEG_QTY'] = parts[idx]
-        idx -= 1
-    
-    # CMS SEG QTY
-    idx = find_column_end(idx)
-    if idx >= 0 and is_valid_numeric(parts[idx]):
-        fields['CMS_SEG_QTY'] = parts[idx]
-        idx -= 1
-    
-    # STOCK REC QTY
-    idx = find_column_end(idx)
-    if idx >= 0 and is_valid_numeric(parts[idx]):
-        fields['STOCK_REC_QTY'] = parts[idx]
+    while idx >= 0 and columns_found < 7:
+        part = parts[idx].strip()
+        if part and is_valid_numeric(part):
+            if columns_found == 0:
+                fields['TOTAL'] = part
+            elif columns_found == 1:
+                fields['OPT_SEG_QTY'] = part
+            elif columns_found == 2:
+                fields['NON_DTC_GCL'] = part
+            elif columns_found == 3:
+                fields['DTC_QTY'] = part
+            elif columns_found == 4:
+                fields['CAMS_SEG_QTY'] = part
+            elif columns_found == 5:
+                fields['CMS_SEG_QTY'] = part
+            elif columns_found == 6:
+                fields['STOCK_REC_QTY'] = part
+            columns_found += 1
         idx -= 1
     
     # Now parse forward to find SECURITY and CUSIP
