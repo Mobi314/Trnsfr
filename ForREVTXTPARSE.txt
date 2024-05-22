@@ -1,101 +1,60 @@
+# Import necessary libraries
 import pandas as pd
-import re
+from ayx import Alteryx
 
-# Get the Alteryx input
+# Read the incoming data
 df = Alteryx.read("#1")
 
-# Define a function to remove consecutive spaces
-def remove_extra_spaces(s):
-    return ' '.join(s.split())
-
-# Define a function to check if a string represents a valid numeric value (for various columns)
-def is_valid_numeric(s):
-    return bool(re.match(r'^-?\d*\.?\d+$', s)) or bool(re.match(r'^-?\.\d+$', s))
-
-# Define a function to parse each CombinedRecord
+# Define the function to parse each record
 def parse_combined_record(record):
-    fields = {
-        'SECURITY': '',
-        'CUSIP': '',
-        'SECURITY_DESC': '',
-        'STOCK_REC_QTY': '',
-        'CMS_SEG_QTY': '',
-        'CAMS_SEG_QTY': '',
-        'DTC_QTY': '',
-        'NON_DTC_GCL': '',
-        'OPT_SEG_QTY': '',
-        'TOTAL': ''
+    columns = ['SECURITY', 'CUSIP', 'SECURITY_DESC', 'STOCK_REC_QTY', 'CMS_SEG_QTY', 'CAMS_SEG_QTY', 
+               'DTC_QTY', 'NON_DTC_GCL', 'OPT_SEG_QTY', 'TOTAL']
+    
+    # Forward parsing for SECURITY and CUSIP
+    parts = record.split()
+    security = parts[0]
+    cusip = parts[1]
+    
+    # Determine the starting index for SECURITY_DESC
+    desc_start_idx = len(security) + 1 + len(cusip) + 1
+    
+    # Reverse parsing for STOCK_REC_QTY to TOTAL
+    reverse_parts = record[desc_start_idx:].split()[::-1]
+    total = reverse_parts[0]
+    opt_seg_qty = reverse_parts[1]
+    non_dtc_gcl = reverse_parts[2]
+    dtc_qty = reverse_parts[3]
+    cams_seg_qty = reverse_parts[4]
+    cms_seg_qty = reverse_parts[5]
+    stock_rec_qty = reverse_parts[6]
+    
+    # Determine the ending index for SECURITY_DESC
+    desc_end_idx = len(record) - (len(total) + 1 + len(opt_seg_qty) + 1 + len(non_dtc_gcl) + 1 + 
+                                  len(dtc_qty) + 1 + len(cams_seg_qty) + 1 + len(cms_seg_qty) + 1 + 
+                                  len(stock_rec_qty) + 1)
+    
+    # Extract SECURITY_DESC
+    security_desc = record[desc_start_idx:desc_end_idx].strip()
+    
+    # Create a dictionary for the parsed columns
+    parsed_data = {
+        'SECURITY': security,
+        'CUSIP': cusip,
+        'SECURITY_DESC': security_desc,
+        'STOCK_REC_QTY': stock_rec_qty,
+        'CMS_SEG_QTY': cms_seg_qty,
+        'CAMS_SEG_QTY': cams_seg_qty,
+        'DTC_QTY': dtc_qty,
+        'NON_DTC_GCL': non_dtc_gcl,
+        'OPT_SEG_QTY': opt_seg_qty,
+        'TOTAL': total
     }
     
-    # Remove extra spaces from the record
-    record = remove_extra_spaces(record)
-    
-    # Split the record by spaces
-    parts = record.split()
-    
-    # Debugging information
-    print(f"Record: {record}")
-    print(f"Parts: {parts}")
-    
-    # Reverse parse to find TOTAL, OPT SEG QTY, NON DTC GCL, DTC QTY, CAMS SEG QTY, CMS SEG QTY, and STOCK REC QTY
-    idx = len(parts) - 1
-    columns_found = 0
-    stock_rec_qty_index = None
-    
-    while idx >= 0 and columns_found < 7:
-        part = parts[idx].strip()
-        print(f"Checking part '{part}' at index {idx}")
-        if part and is_valid_numeric(part):
-            print(f"Found numeric value '{part}' at index {idx}")
-            if columns_found == 0:
-                fields['TOTAL'] = part
-            elif columns_found == 1:
-                fields['OPT_SEG_QTY'] = part
-            elif columns_found == 2:
-                fields['NON_DTC_GCL'] = part
-            elif columns_found == 3:
-                fields['DTC_QTY'] = part
-            elif columns_found == 4:
-                fields['CAMS_SEG_QTY'] = part
-            elif columns_found == 5:
-                fields['CMS_SEG_QTY'] = part
-            elif columns_found == 6:
-                fields['STOCK_REC_QTY'] = part
-                stock_rec_qty_index = idx  # Save the index where STOCK_REC_QTY is found
-            columns_found += 1
-        idx -= 1
-    
-    # Ensure stock_rec_qty_index is set correctly
-    if stock_rec_qty_index is None:
-        raise ValueError("STOCK_REC_QTY not found in the record")
-    
-    # Adjust idx to the last non-empty part before STOCK_REC_QTY
-    idx = stock_rec_qty_index - 1
-    while idx >= 0 and parts[idx] == '':
-        idx -= 1
-    
-    # Now parse forward to find SECURITY and CUSIP
-    forward_idx = 0
-    fields['SECURITY'] = parts[forward_idx].strip()
-    forward_idx += 1
-    fields['CUSIP'] = parts[forward_idx].strip()
-    forward_idx += 1
-    
-    # SECURITY DESC is everything in between the end of CUSIP and the start of STOCK REC QTY
-    security_desc_parts = parts[forward_idx:idx + 1]
-    fields['SECURITY_DESC'] = ' '.join(security_desc_parts).strip()
-    
-    # Debugging information
-    print(f"Parsed fields: {fields}")
-    
-    return fields
+    return parsed_data
 
-# Apply the function to each record
-parsed_data = df['CombinedRecord'].apply(parse_combined_record)
-parsed_df = pd.DataFrame(parsed_data.tolist())
+# Apply the function to the dataframe
+parsed_records = df['CombinedRecord'].apply(parse_combined_record)
+parsed_df = pd.DataFrame(parsed_records.tolist())
 
-# Concatenate with the original dataframe
-result_df = pd.concat([df, parsed_df], axis=1)
-
-# Output the result
-Alteryx.write(result_df, 1)
+# Output the parsed dataframe
+Alteryx.write(parsed_df, 1)
