@@ -4,17 +4,10 @@ import re
 # Get the Alteryx input
 df = Alteryx.read("#1")
 
-# Define a function to check if a string represents a number
-def is_number(s):
-    try:
-        float(s)
-        return True
-    except ValueError:
-        return False
-
-# Define a function to check if a string is a valid STOCK_REC_QTY
+# Define a function to check if a string represents a valid STOCK_REC_QTY
 def is_valid_stock_rec_qty(s):
-    return bool(re.match(r'^-?\d*\.?\d*$', s))
+    # Validates strings like 4000.00000, .00000, -4000.00000, or -.00000
+    return bool(re.match(r'^-?\d*\.?\d+$', s)) or bool(re.match(r'^-?\.\d+$', s))
 
 # Define a function to parse each CombinedRecord
 def parse_combined_record(record):
@@ -45,15 +38,22 @@ def parse_combined_record(record):
     
     # SECURITY DESC and STOCK REC QTY
     desc = []
+    potential_stock_qty = []
     while idx < len(parts):
         part = parts[idx]
-        if is_valid_stock_rec_qty(part):
-            fields['STOCK_REC_QTY'] = part
-            idx += 1
-            break
+        if re.match(r'^\d', part) or re.match(r'^\.', part):
+            potential_stock_qty.append(part)
+            # Check if the potential STOCK_REC_QTY meets the criteria
+            if is_valid_stock_rec_qty(' '.join(potential_stock_qty)):
+                fields['STOCK_REC_QTY'] = ' '.join(potential_stock_qty).strip()
+                break
         else:
+            if potential_stock_qty:
+                # Append previous parts to desc and reset potential_stock_qty
+                desc.extend(potential_stock_qty)
+                potential_stock_qty = []
             desc.append(part)
-            idx += 1
+        idx += 1
     
     fields['SECURITY_DESC'] = ' '.join(desc).strip()
     
