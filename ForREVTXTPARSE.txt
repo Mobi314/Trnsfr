@@ -29,39 +29,50 @@ def parse_combined_record(record):
     # Reverse parse to find TOTAL, OPT SEG QTY, NON DTC GCL, DTC QTY, CAMS SEG QTY, CMS SEG QTY, and STOCK REC QTY
     idx = len(parts) - 1
     
+    # Helper function to find the end of each column
+    def find_column_end(idx):
+        while idx >= 0 and parts[idx] == '':
+            idx -= 1
+        return idx
+    
     # TOTAL
+    idx = find_column_end(idx)
     if idx >= 0 and is_valid_numeric(parts[idx]):
         fields['TOTAL'] = parts[idx]
         idx -= 1
     
     # OPT SEG QTY
+    idx = find_column_end(idx)
     if idx >= 0 and is_valid_numeric(parts[idx]):
         fields['OPT_SEG_QTY'] = parts[idx]
         idx -= 1
     
     # NON DTC GCL
+    idx = find_column_end(idx)
     if idx >= 0 and is_valid_numeric(parts[idx]):
         fields['NON_DTC_GCL'] = parts[idx]
         idx -= 1
     
     # DTC QTY
+    idx = find_column_end(idx)
     if idx >= 0 and is_valid_numeric(parts[idx]):
         fields['DTC_QTY'] = parts[idx]
         idx -= 1
     
     # CAMS SEG QTY
+    idx = find_column_end(idx)
     if idx >= 0 and is_valid_numeric(parts[idx]):
         fields['CAMS_SEG_QTY'] = parts[idx]
         idx -= 1
     
     # CMS SEG QTY
+    idx = find_column_end(idx)
     if idx >= 0 and is_valid_numeric(parts[idx]):
         fields['CMS_SEG_QTY'] = parts[idx]
         idx -= 1
     
     # STOCK REC QTY
-    while idx >= 0 and not is_valid_numeric(parts[idx]):
-        idx -= 1
+    idx = find_column_end(idx)
     if idx >= 0 and is_valid_numeric(parts[idx]):
         fields['STOCK_REC_QTY'] = parts[idx]
         idx -= 1
