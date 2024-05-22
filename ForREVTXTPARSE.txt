@@ -1,0 +1,90 @@
+import pandas as pd
+import re
+
+# Get the Alteryx input
+df = Alteryx.read("#1")
+
+# Define a function to check if a string represents a valid numeric value (for various columns)
+def is_valid_numeric(s):
+    return bool(re.match(r'^-?\d*\.?\d+$', s)) or bool(re.match(r'^-?\.\d+$', s))
+
+# Define a function to parse each CombinedRecord
+def parse_combined_record(record):
+    fields = {
+        'SECURITY': '',
+        'CUSIP': '',
+        'SECURITY_DESC': '',
+        'STOCK_REC_QTY': '',
+        'CMS_SEG_QTY': '',
+        'CAMS_SEG_QTY': '',
+        'DTC_QTY': '',
+        'NON_DTC_GCL': '',
+        'OPT_SEG_QTY': '',
+        'TOTAL': ''
+    }
+    
+    # Split the record by spaces
+    parts = record.split()
+    
+    # Reverse parse to find TOTAL, OPT SEG QTY, NON DTC GCL, DTC QTY, CAMS SEG QTY, CMS SEG QTY, and STOCK REC QTY
+    idx = len(parts) - 1
+    
+    # TOTAL
+    if idx >= 0 and is_valid_numeric(parts[idx]):
+        fields['TOTAL'] = parts[idx]
+        idx -= 1
+    
+    # OPT SEG QTY
+    if idx >= 0 and is_valid_numeric(parts[idx]):
+        fields['OPT_SEG_QTY'] = parts[idx]
+        idx -= 1
+    
+    # NON DTC GCL
+    if idx >= 0 and is_valid_numeric(parts[idx]):
+        fields['NON_DTC_GCL'] = parts[idx]
+        idx -= 1
+    
+    # DTC QTY
+    if idx >= 0 and is_valid_numeric(parts[idx]):
+        fields['DTC_QTY'] = parts[idx]
+        idx -= 1
+    
+    # CAMS SEG QTY
+    if idx >= 0 and is_valid_numeric(parts[idx]):
+        fields['CAMS_SEG_QTY'] = parts[idx]
+        idx -= 1
+    
+    # CMS SEG QTY
+    if idx >= 0 and is_valid_numeric(parts[idx]):
+        fields['CMS_SEG_QTY'] = parts[idx]
+        idx -= 1
+    
+    # STOCK REC QTY
+    while idx >= 0 and not is_valid_numeric(parts[idx]):
+        idx -= 1
+    if idx >= 0 and is_valid_numeric(parts[idx]):
+        fields['STOCK_REC_QTY'] = parts[idx]
+        idx -= 1
+    
+    # Now parse forward to find SECURITY and CUSIP
+    forward_idx = 0
+    fields['SECURITY'] = parts[forward_idx]
+    forward_idx += 1
+    fields['CUSIP'] = parts[forward_idx]
+    forward_idx += 1
+    
+    # SECURITY DESC is everything in between the identified indices
+    security_desc_parts = parts[forward_idx:idx + 1]
+    fields['SECURITY_DESC'] = ' '.join(security_desc_parts).strip()
+    
+    return fields
+
+# Apply the function to each record
+parsed_data = df['CombinedRecord'].apply(parse_combined_record)
+parsed_df = pd.DataFrame(parsed_data.tolist())
+
+# Concatenate with the original dataframe
+result_df = pd.concat([df, parsed_df], axis=1)
+
+# Output the result
+Alteryx.write(result_df, 1)
