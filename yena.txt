@@ -1,0 +1,19 @@
+Current Extract Fiscal Year Value = 
+VAR ExtractDate = 'Current Status'[Date]
+RETURN 
+    IF(
+        MONTH(ExtractDate) >= 4,
+        YEAR(ExtractDate),
+        YEAR(ExtractDate) - 1
+    )
+
+Current Extract Quarter = 
+VAR ExtractDate = 'Current Status'[Date]
+RETURN 
+    SWITCH(
+        TRUE(),
+        MONTH(ExtractDate) IN {4, 5, 6}, 1,
+        MONTH(ExtractDate) IN {7, 8, 9}, 2,
+        MONTH(ExtractDate) IN {10, 11, 12}, 3,
+        MONTH(ExtractDate) IN {1, 2, 3}, 4
+    )
