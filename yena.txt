@@ -1,19 +1,26 @@
-Current Extract Fiscal Year Value = 
-VAR ExtractDate = 'Current Status'[Date]
-RETURN 
-    IF(
-        MONTH(ExtractDate) >= 4,
-        YEAR(ExtractDate),
-        YEAR(ExtractDate) - 1
-    )
+Program Fiscal Year and Quarter = 
+VAR EndDate = 'Table'[Program End Date]
+VAR FiscalYear = IF(MONTH(EndDate) < 4, YEAR(EndDate) - 1, YEAR(EndDate))
+VAR FiscalQuarter = SWITCH(
+    TRUE(),
+    MONTH(EndDate) >= 4 && MONTH(EndDate) <= 6, "Q1",
+    MONTH(EndDate) >= 7 && MONTH(EndDate) <= 9, "Q2",
+    MONTH(EndDate) >= 10 && MONTH(EndDate) <= 12, "Q3",
+    "Q4"
+)
+RETURN "FY" & FiscalYear & " " & FiscalQuarter
 
-Current Extract Quarter = 
-VAR ExtractDate = 'Current Status'[Date]
-RETURN 
-    SWITCH(
-        TRUE(),
-        MONTH(ExtractDate) IN {4, 5, 6}, 1,
-        MONTH(ExtractDate) IN {7, 8, 9}, 2,
-        MONTH(ExtractDate) IN {10, 11, 12}, 3,
-        MONTH(ExtractDate) IN {1, 2, 3}, 4
-    )
+Business Outcome Fiscal Year and Quarter = 
+VAR ActualEndDate = 'Table'[Business Outcome Actual End Date Formatted]
+VAR EndDate = 'Table'[Business Outcomes End Date]
+VAR BaselineEndDate = 'Table'[Business Outcome Baseline End Date Formatted]
+VAR EffectiveEndDate = IF(ISBLANK(ActualEndDate), IF(ISBLANK(EndDate), BaselineEndDate, EndDate), ActualEndDate)
+VAR FiscalYear = IF(MONTH(EffectiveEndDate) < 4, YEAR(EffectiveEndDate) - 1, YEAR(EffectiveEndDate))
+VAR FiscalQuarter = SWITCH(
+    TRUE(),
+    MONTH(EffectiveEndDate) >= 4 && MONTH(EffectiveEndDate) <= 6, "Q1",
+    MONTH(EffectiveEndDate) >= 7 && MONTH(EffectiveEndDate) <= 9, "Q2",
+    MONTH(EffectiveEndDate) >= 10 && MONTH(EffectiveEndDate) <= 12, "Q3",
+    "Q4"
+)
+RETURN "FY" & FiscalYear & " " & FiscalQuarter
