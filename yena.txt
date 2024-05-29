@@ -1,3 +1,21 @@
+Program Quarter Due = 
+VAR EndDate =
+    IF (
+        ISBLANK('Current Status'[Program End Date]),
+        'Current Status'[Program Baseline End Date],
+        'Current Status'[Program End Date]
+    )
+VAR MonthNumber = MONTH(EndDate)
+RETURN
+    SWITCH (
+        TRUE(),
+        MonthNumber IN {4, 5, 6}, "Q1",
+        MonthNumber IN {7, 8, 9}, "Q2",
+        MonthNumber IN {10, 11, 12}, "Q3",
+        MonthNumber IN {1, 2, 3}, "Q4",
+        BLANK()
+    )
+
 BO Quarter Due = 
 VAR EndDate =
     IF (
