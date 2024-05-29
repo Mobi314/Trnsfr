@@ -9,86 +9,59 @@ RETURN
         "FY" & (YearNumber - 1) & "-" & YearNumber
     )
 
+Current Quarter Composite Key = 
+[Fiscal Year Measure] & [Current Quarter Measure]
+
+Next Quarter Composite Key = 
+SWITCH (
+    [Current Quarter Measure],
+    "Q1", IF(LEFT([Fiscal Year Measure], 2) = "FY", MID([Fiscal Year Measure], 3, 4) & "-" & MID([Fiscal Year Measure], 8, 4) & "Q2"),
+    "Q2", IF(LEFT([Fiscal Year Measure], 2) = "FY", MID([Fiscal Year Measure], 3, 4) & "-" & MID([Fiscal Year Measure], 8, 4) & "Q3"),
+    "Q3", IF(LEFT([Fiscal Year Measure], 2) = "FY", MID([Fiscal Year Measure], 3, 4) & "-" & MID([Fiscal Year Measure], 8, 4) & "Q4"),
+    "Q4", IF(LEFT([Fiscal Year Measure], 2) = "FY", MID([Fiscal Year Measure], 8, 4) & "-" & (VALUE(MID([Fiscal Year Measure], 8, 4)) + 1) & "Q1")
+)
+
+Previous Quarter Composite Key = 
+SWITCH (
+    [Current Quarter Measure],
+    "Q1", IF(LEFT([Fiscal Year Measure], 2) = "FY", MID([Fiscal Year Measure], 3, 4) - 1 & "-" & MID([Fiscal Year Measure], 3, 4) & "Q4"),
+    "Q2", IF(LEFT([Fiscal Year Measure], 2) = "FY", MID([Fiscal Year Measure], 3, 4) & "-" & MID([Fiscal Year Measure], 8, 4) & "Q1"),
+    "Q3", IF(LEFT([Fiscal Year Measure], 2) = "FY", MID([Fiscal Year Measure], 3, 4) & "-" & MID([Fiscal Year Measure], 8, 4) & "Q2"),
+    "Q4", IF(LEFT([Fiscal Year Measure], 2) = "FY", MID([Fiscal Year Measure], 3, 4) & "-" & MID([Fiscal Year Measure], 8, 4) & "Q3")
+)
+
 Programs Due at Start of Current Quarter = 
 CALCULATE (
     DISTINCTCOUNT('Current Status'[Program JIRA Key]),
-    'Current Status'[Program Quarter Due] = 
-    SWITCH (
-        [Current Quarter Measure],
-        "Q1", "Q4",
-        "Q2", "Q1",
-        "Q3", "Q2",
-        "Q4", "Q3"
-    ) &&
-    'Current Status'[Program Fiscal Year] =
-    SWITCH (
-        [Current Quarter Measure],
-        "Q1", [Fiscal Year Measure] - 1,
-        "Q2", [Fiscal Year Measure],
-        "Q3", [Fiscal Year Measure],
-        "Q4", [Fiscal Year Measure]
-    )
+    'Current Status'[Program Fiscal Year] & 'Current Status'[Program Quarter Due] = [Previous Quarter Composite Key]
 )
 
 Programs Due at the End of Current Quarter = 
 CALCULATE (
     DISTINCTCOUNT('Current Status'[Program JIRA Key]),
-    'Current Status'[Program Quarter Due] = [Current Quarter Measure] &&
-    'Current Status'[Program Fiscal Year] = [Fiscal Year Measure]
+    'Current Status'[Program Fiscal Year] & 'Current Status'[Program Quarter Due] = [Current Quarter Composite Key]
 )
 
 Programs Due Next Quarter = 
 CALCULATE (
     DISTINCTCOUNT('Current Status'[Program JIRA Key]),
-    'Current Status'[Program Quarter Due] = [Next Quarter Measure] &&
-    'Current Status'[Program Fiscal Year] =
-    SWITCH (
-        [Current Quarter Measure],
-        "Q1", [Fiscal Year Measure],
-        "Q2", [Fiscal Year Measure],
-        "Q3", [Fiscal Year Measure],
-        "Q4", [Fiscal Year Measure] + 1
-    )
+    'Current Status'[Program Fiscal Year] & 'Current Status'[Program Quarter Due] = [Next Quarter Composite Key]
 )
 
 Business Outcomes Due at Start of Current Quarter = 
 CALCULATE (
     DISTINCTCOUNT('Combined Snapshot'[Business Outcome JIRA Key]),
-    'Combined Snapshot'[BO Quarter Due] = 
-    SWITCH (
-        [Current Quarter Measure],
-        "Q1", "Q4",
-        "Q2", "Q1",
-        "Q3", "Q2",
-        "Q4", "Q3"
-    ) &&
-    'Combined Snapshot'[Fiscal Year] =
-    SWITCH (
-        [Current Quarter Measure],
-        "Q1", [Fiscal Year Measure] - 1,
-        "Q2", [Fiscal Year Measure],
-        "Q3", [Fiscal Year Measure],
-        "Q4", [Fiscal Year Measure]
-    )
+    'Combined Snapshot'[Fiscal Year] & 'Combined Snapshot'[BO Quarter Due] = [Previous Quarter Composite Key]
 )
 
 Business Outcomes Due at the End of Current Quarter = 
 CALCULATE (
     DISTINCTCOUNT('Combined Snapshot'[Business Outcome JIRA Key]),
-    'Combined Snapshot'[BO Quarter Due] = [Current Quarter Measure] &&
-    'Combined Snapshot'[Fiscal Year] = [Fiscal Year Measure]
+    'Combined Snapshot'[Fiscal Year] & 'Combined Snapshot'[BO Quarter Due] = [Current Quarter Composite Key]
 )
 
 Business Outcomes Due Next Quarter = 
 CALCULATE (
     DISTINCTCOUNT('Combined Snapshot'[Business Outcome JIRA Key]),
-    'Combined Snapshot'[BO Quarter Due] = [Next Quarter Measure] &&
-    'Combined Snapshot'[Fiscal Year] =
-    SWITCH (
-        [Current Quarter Measure],
-        "Q1", [Fiscal Year Measure],
-        "Q2", [Fiscal Year Measure],
-        "Q3", [Fiscal Year Measure],
-        "Q4", [Fiscal Year Measure] + 1
-    )
+    'Combined Snapshot'[Fiscal Year] & 'Combined Snapshot'[BO Quarter Due] = [Next Quarter Composite Key]
 )
