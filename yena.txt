@@ -1,3 +1,27 @@
+BO Quarter Due = 
+VAR EndDate =
+    IF (
+        'Current Status'[Business Outcome Status] = "Closed",
+        'Current Status'[Business Outcome Actual End Date Formatted],
+        IF (
+            ISBLANK('Current Status'[Business Outcome End Date]),
+            'Current Status'[Business Outcome Baseline End Date Formatted],
+            'Current Status'[Business Outcome End Date]
+        )
+    )
+VAR MonthNumber = MONTH(EndDate)
+RETURN
+    SWITCH (
+        TRUE(),
+        MonthNumber IN {4, 5, 6}, "Q1",
+        MonthNumber IN {7, 8, 9}, "Q2",
+        MonthNumber IN {10, 11, 12}, "Q3",
+        MonthNumber IN {1, 2, 3}, "Q4",
+        BLANK()
+    )
+
+
+
 Start of Previous Quarter = 
 VAR CurrentDate = SELECTEDVALUE('Current Status'[Date], TODAY())  // Ensures the use of slicer selected date or today's date if nothing is selected
 VAR FiscalYearStart = DATE(YEAR(CurrentDate) - (MONTH(CurrentDate) < 4), 4, 1)
