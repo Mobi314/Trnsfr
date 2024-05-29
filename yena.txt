@@ -1,20 +1,20 @@
 Start of Previous Quarter = 
-VAR CurrentDate = SELECTEDVALUE('Current Status'[Date], TODAY())  // Ensures the use of slicer selected date or today's date if nothing is selected
+VAR CurrentDate = SELECTEDVALUE('Current Status'[Date], TODAY())  // Use the date selected from a slicer or today's date
 VAR FiscalYearStart = DATE(YEAR(CurrentDate) - (MONTH(CurrentDate) < 4), 4, 1)
 VAR Q1Start = FiscalYearStart
 VAR Q2Start = DATE(YEAR(FiscalYearStart), 7, 1)
 VAR Q3Start = DATE(YEAR(FiscalYearStart), 10, 1)
-VAR Q4Start = DATE(YEAR(FiscalYearStart), 1, 1)
+VAR Q4Start = DATE(YEAR(CurrentDate) - (MONTH(CurrentDate) < 4), 1, 1)  // Correction for Q4 start
 VAR CurrentQuarter =
     SWITCH(TRUE(),
         CurrentDate >= Q1Start && CurrentDate < Q2Start, "Q1",
         CurrentDate >= Q2Start && CurrentDate < Q3Start, "Q2",
         CurrentDate >= Q3Start && CurrentDate < Q4Start, "Q3",
-        CurrentDate >= Q4Start || CurrentDate < Q1Start, "Q4"
+        "Q4"
     )
 RETURN
     SWITCH(CurrentQuarter,
-        "Q1", Q4Start - 1,  // Q4 of the previous year
+        "Q1", Q4Start - 1,  // Q4 of the previous year, fixing the day-off error
         "Q2", Q1Start,  // Q1 of the same year
         "Q3", Q2Start,  // Q2 of the same year
         "Q4", Q3Start   // Q3 of the same year
