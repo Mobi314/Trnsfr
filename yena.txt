@@ -1,20 +1,21 @@
 Start of Previous Quarter = 
-VAR SelectedDate = SELECTEDVALUE('Current Status'[Date], TODAY())
-VAR YearAdjustment = IF(MONTH(SelectedDate) < 4, -1, 0)
-VAR CurrentFiscalYear = YEAR(SelectedDate) + YearAdjustment
-VAR CurrentQuarter = 
-    SWITCH(
-        TRUE(),
-        MONTH(SelectedDate) >= 4 AND MONTH(SelectedDate) <= 6, "Q1",
-        MONTH(SelectedDate) >= 7 AND MONTH(SelectedDate) <= 9, "Q2",
-        MONTH(SelectedDate) >= 10 AND MONTH(SelectedDate) <= 12, "Q3",
-        "Q4"  // This accounts for January to March
+VAR CurrentDate = SELECTEDVALUE('Current Status'[Date], TODAY())  // Ensures the use of slicer selected date or today's date if nothing is selected
+VAR FiscalYearStart = DATE(YEAR(CurrentDate) - (MONTH(CurrentDate) < 4), 4, 1)
+VAR Q1Start = FiscalYearStart
+VAR Q2Start = DATE(YEAR(FiscalYearStart), 7, 1)
+VAR Q3Start = DATE(YEAR(FiscalYearStart), 10, 1)
+VAR Q4Start = DATE(YEAR(FiscalYearStart), 1, 1)
+VAR CurrentQuarter =
+    SWITCH(TRUE(),
+        CurrentDate >= Q1Start && CurrentDate < Q2Start, "Q1",
+        CurrentDate >= Q2Start && CurrentDate < Q3Start, "Q2",
+        CurrentDate >= Q3Start && CurrentDate < Q4Start, "Q3",
+        CurrentDate >= Q4Start || CurrentDate < Q1Start, "Q4"
     )
 RETURN
-    SWITCH(
-        CurrentQuarter,
-        "Q1", DATE(CurrentFiscalYear - 1, 10, 1),  // Start of Q4 in the previous fiscal year
-        "Q2", DATE(CurrentFiscalYear, 4, 1),       // Start of Q1 in the current fiscal year
-        "Q3", DATE(CurrentFiscalYear, 7, 1),       // Start of Q2 in the current fiscal year
-        DATE(CurrentFiscalYear, 10, 1)             // Start of Q3 in the current fiscal year for "Q4"
+    SWITCH(CurrentQuarter,
+        "Q1", Q4Start - 1,  // Q4 of the previous year
+        "Q2", Q1Start,  // Q1 of the same year
+        "Q3", Q2Start,  // Q2 of the same year
+        "Q4", Q3Start   // Q3 of the same year
     )
