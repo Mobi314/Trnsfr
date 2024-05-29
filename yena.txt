@@ -1,26 +1,14 @@
-Program Fiscal Year and Quarter = 
-VAR EndDate = 'Table'[Program End Date]
-VAR FiscalYear = IF(MONTH(EndDate) < 4, YEAR(EndDate) - 1, YEAR(EndDate))
-VAR FiscalQuarter = SWITCH(
-    TRUE(),
-    MONTH(EndDate) >= 4 && MONTH(EndDate) <= 6, "Q1",
-    MONTH(EndDate) >= 7 && MONTH(EndDate) <= 9, "Q2",
-    MONTH(EndDate) >= 10 && MONTH(EndDate) <= 12, "Q3",
-    "Q4"
-)
-RETURN "FY" & FiscalYear & " " & FiscalQuarter
-
-Business Outcome Fiscal Year and Quarter = 
-VAR ActualEndDate = 'Table'[Business Outcome Actual End Date Formatted]
-VAR EndDate = 'Table'[Business Outcomes End Date]
-VAR BaselineEndDate = 'Table'[Business Outcome Baseline End Date Formatted]
-VAR EffectiveEndDate = IF(ISBLANK(ActualEndDate), IF(ISBLANK(EndDate), BaselineEndDate, EndDate), ActualEndDate)
-VAR FiscalYear = IF(MONTH(EffectiveEndDate) < 4, YEAR(EffectiveEndDate) - 1, YEAR(EffectiveEndDate))
-VAR FiscalQuarter = SWITCH(
-    TRUE(),
-    MONTH(EffectiveEndDate) >= 4 && MONTH(EffectiveEndDate) <= 6, "Q1",
-    MONTH(EffectiveEndDate) >= 7 && MONTH(EffectiveEndDate) <= 9, "Q2",
-    MONTH(EffectiveEndDate) >= 10 && MONTH(EffectiveEndDate) <= 12, "Q3",
-    "Q4"
-)
-RETURN "FY" & FiscalYear & " " & FiscalQuarter
+Start of Previous Quarter = 
+VAR CurrentQ = [Current Quarter]
+VAR FiscalYearStart = DATE(YEAR(TODAY()) - (MONTH(TODAY()) < 4), 4, 1)
+VAR Q1Start = FiscalYearStart
+VAR Q2Start = DATE(YEAR(FiscalYearStart), 7, 1)
+VAR Q3Start = DATE(YEAR(FiscalYearStart), 10, 1)
+VAR Q4Start = DATE(YEAR(FiscalYearStart) + 1, 1, 1)
+RETURN
+    SWITCH(CurrentQ,
+        "Q1", DATE(YEAR(FiscalYearStart) - 1, 10, 1),  // If current quarter is Q1, previous is Q4 of last year
+        "Q2", Q1Start,  // If current quarter is Q2, previous is Q1
+        "Q3", Q2Start,  // If current quarter is Q3, previous is Q2
+        "Q4", Q3Start   // If current quarter is Q4, previous is Q3
+    )
