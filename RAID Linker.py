@@ -1,4 +1,5 @@
 import pandas as pd
+import Alteryx
 
 # Read input data
 input_1 = Alteryx.read("#1")
@@ -26,45 +27,39 @@ def add_new_row(row, linked_program='', linked_project='', linked_outcome=''):
     new_row['Linked Business Outcome Key'] = linked_outcome
     new_rows.append(new_row)
 
+# Process the rows for each type of JIRA key
+def process_rows(input_df, jira_keys, combined_column, key_column):
+    new_rows = []
+    for index, row in input_df.iterrows():
+        linked = False
+        for key in jira_keys:
+            if key in row[combined_column]:
+                new_row = row.copy()
+                new_row[key_column] = key
+                new_rows.append(new_row)
+                linked = True
+        if not linked:
+            new_rows.append(row)
+    return new_rows
+
 # Link Program JIRA Keys
 program_keys = input_2['Program JIRA Key'].tolist()
-for index, row in input_1.iterrows():
-    linked = False
-    for key in program_keys:
-        if key in row['Impacted Projects_Programs Combined']:
-            add_new_row(row, linked_program=key)
-            linked = True
-    if not linked:
-        add_new_row(row)
+temp_rows = process_rows(input_1, program_keys, 'Impacted Projects_Programs Combined', 'Linked Program Key')
 
 # Link Project JIRA Keys
 project_keys = input_3['Project JIRA Key'].tolist()
-temp_rows = new_rows.copy()
-new_rows = []
+temp_rows_2 = []
 for row in temp_rows:
-    linked = False
-    for key in project_keys:
-        if key in row['Impacted Projects_Programs Combined']:
-            add_new_row(row, linked_project=key)
-            linked = True
-    if not linked:
-        new_rows.append(row)
+    temp_rows_2.extend(process_rows(pd.DataFrame([row]), project_keys, 'Impacted Projects_Programs Combined', 'Linked Project Key'))
 
 # Link Business Outcome JIRA Keys
 business_outcome_keys = input_4['Business Outcome JIRA Key'].tolist()
-temp_rows = new_rows.copy()
-new_rows = []
-for row in temp_rows:
-    linked = False
-    for key in business_outcome_keys:
-        if key in row['Impacted Items Combined']:
-            add_new_row(row, linked_outcome=key)
-            linked = True
-    if not linked:
-        new_rows.append(row)
+final_rows = []
+for row in temp_rows_2:
+    final_rows.extend(process_rows(pd.DataFrame([row]), business_outcome_keys, 'Impacted Items Combined', 'Linked Business Outcome Key'))
 
 # Convert the list of new rows to a DataFrame
-output_df = pd.DataFrame(new_rows)
+output_df = pd.DataFrame(final_rows)
 
 # Output the final dataframe
 Alteryx.write(output_df, 1)
