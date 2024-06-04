@@ -1,4 +1,5 @@
 import pandas as pd
+import Alteryx
 
 # Read input data
 input_1 = Alteryx.read("#1")
@@ -26,7 +27,7 @@ all_rows = []
 # Initialize columns for failed linkages
 input_1['Failed Program Linkages'] = ''
 input_1['Failed Project Linkages'] = ''
-input_1['Failed Business Outcome Linkages'] = []
+input_1['Failed Business Outcome Linkages'] = ''
 
 # Process each RAID record
 for index, row in input_1.iterrows():
@@ -58,7 +59,8 @@ for index, row in input_1.iterrows():
             all_rows.append(new_row)
             linked = True
         else:
-            failed_programs.append(key) if key not in program_keys else failed_projects.append(key)
+            if key not in program_keys and key not in project_keys:
+                failed_programs.append(key)
 
     # Process Business Outcome keys
     for key in combined_items_keys:
@@ -70,7 +72,8 @@ for index, row in input_1.iterrows():
             all_rows.append(new_row)
             linked = True
         else:
-            failed_business_outcomes.append(key)
+            if key not in business_outcome_keys:
+                failed_business_outcomes.append(key)
 
     # If no keys matched, keep the original row
     if not linked:
