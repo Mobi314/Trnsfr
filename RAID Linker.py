@@ -1,5 +1,4 @@
 import pandas as pd
-import Alteryx
 
 # Read input data
 input_1 = Alteryx.read("#1")
@@ -16,29 +15,61 @@ def combine_columns(df, keyword):
 input_1['Impacted Projects_Programs Combined'] = combine_columns(input_1, 'Impacted Project')
 input_1['Impacted Items Combined'] = combine_columns(input_1, 'Impacted Items')
 
-# Initialize new columns
-input_1['Linked Program Key'] = ''
-input_1['Linked Project Key'] = ''
-input_1['Linked Business Outcome Key'] = ''
-
-# Function to link JIRA keys
-def link_jira_keys(row, key_list, column_name):
-    for key in key_list:
-        if key in row[column_name]:
-            return key
-    return ''
+# Initialize lists to store new rows
+new_rows = []
 
 # Link Program JIRA Keys
 program_keys = input_2['Program JIRA Key'].tolist()
-input_1['Linked Program Key'] = input_1.apply(lambda row: link_jira_keys(row, program_keys, 'Impacted Projects_Programs Combined'), axis=1)
+for index, row in input_1.iterrows():
+    linked = False
+    for key in program_keys:
+        if key in row['Impacted Projects_Programs Combined']:
+            new_row = row.copy()
+            new_row['Linked Program Key'] = key
+            new_row['Linked Project Key'] = ''
+            new_row['Linked Business Outcome Key'] = ''
+            new_rows.append(new_row)
+            linked = True
+            break
+    if not linked:
+        new_rows.append(row)
 
 # Link Project JIRA Keys
 project_keys = input_3['Project JIRA Key'].tolist()
-input_1['Linked Project Key'] = input_1.apply(lambda row: link_jira_keys(row, project_keys, 'Impacted Projects_Programs Combined'), axis=1)
+temp_rows = []
+for row in new_rows:
+    linked = False
+    for key in project_keys:
+        if key in row['Impacted Projects_Programs Combined']:
+            new_row = row.copy()
+            new_row['Linked Program Key'] = ''
+            new_row['Linked Project Key'] = key
+            new_row['Linked Business Outcome Key'] = ''
+            temp_rows.append(new_row)
+            linked = True
+            break
+    if not linked:
+        temp_rows.append(row)
 
 # Link Business Outcome JIRA Keys
 business_outcome_keys = input_4['Business Outcome JIRA Key'].tolist()
-input_1['Linked Business Outcome Key'] = input_1.apply(lambda row: link_jira_keys(row, business_outcome_keys, 'Impacted Items Combined'), axis=1)
+final_rows = []
+for row in temp_rows:
+    linked = False
+    for key in business_outcome_keys:
+        if key in row['Impacted Items Combined']:
+            new_row = row.copy()
+            new_row['Linked Program Key'] = ''
+            new_row['Linked Project Key'] = ''
+            new_row['Linked Business Outcome Key'] = key
+            final_rows.append(new_row)
+            linked = True
+            break
+    if not linked:
+        final_rows.append(row)
+
+# Convert the list of new rows to a DataFrame
+output_df = pd.DataFrame(final_rows)
 
 # Output the final dataframe
-Alteryx.write(input_1, 1)
+Alteryx.write(output_df, 1)
