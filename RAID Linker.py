@@ -30,44 +30,28 @@ def create_linked_rows(row, keys, combined_column, key_column):
             new_row['Linked Business Outcome Key'] = ''
             new_row[key_column] = key
             rows.append(new_row)
-    if not rows:
-        rows.append(row)
     return rows
 
 # Process each RAID record by checking against hierarchy input streams
+def process_hierarchy(input_df, keys, combined_column, key_column):
+    new_rows = []
+    for index, row in input_df.iterrows():
+        linked_rows = create_linked_rows(row, keys, combined_column, key_column)
+        if linked_rows:
+            new_rows.extend(linked_rows)
+        else:
+            new_rows.append(row)
+    return pd.DataFrame(new_rows)
 
-# Process Program JIRA Keys
+# Read the keys from input streams
 program_keys = input_2['Program JIRA Key'].tolist()
-for index, row in input_1.iterrows():
-    linked_rows = create_linked_rows(row, program_keys, 'Impacted Projects_Programs Combined', 'Linked Program Key')
-    all_rows.extend(linked_rows)
-
-# Convert to DataFrame
-temp_df = pd.DataFrame(all_rows)
-
-# Reset all_rows for Project processing
-all_rows = []
-
-# Process Project JIRA Keys
 project_keys = input_3['Project JIRA Key'].tolist()
-for index, row in temp_df.iterrows():
-    linked_rows = create_linked_rows(row, project_keys, 'Impacted Projects_Programs Combined', 'Linked Project Key')
-    all_rows.extend(linked_rows)
-
-# Convert to DataFrame
-temp_df = pd.DataFrame(all_rows)
-
-# Reset all_rows for Business Outcome processing
-all_rows = []
-
-# Process Business Outcome JIRA Keys
 business_outcome_keys = input_4['Business Outcome JIRA Key'].tolist()
-for index, row in temp_df.iterrows():
-    linked_rows = create_linked_rows(row, business_outcome_keys, 'Impacted Items Combined', 'Linked Business Outcome Key')
-    all_rows.extend(linked_rows)
 
-# Convert the list of new rows to a DataFrame
-final_df = pd.DataFrame(all_rows)
+# Process each hierarchy
+temp_df = process_hierarchy(input_1, program_keys, 'Impacted Projects_Programs Combined', 'Linked Program Key')
+temp_df = process_hierarchy(temp_df, project_keys, 'Impacted Projects_Programs Combined', 'Linked Project Key')
+final_df = process_hierarchy(temp_df, business_outcome_keys, 'Impacted Items Combined', 'Linked Business Outcome Key')
 
 # Output the final dataframe
 Alteryx.write(final_df, 1)
