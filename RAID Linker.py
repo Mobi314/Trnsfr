@@ -22,7 +22,7 @@ new_rows = []
 def create_linked_rows(row, keys, combined_column, key_column):
     rows = []
     for key in keys:
-        if key in row[combined_column]:
+        if key in row[combined_column].split(','):
             new_row = row.copy()
             new_row['Linked Program Key'] = ''
             new_row['Linked Project Key'] = ''
