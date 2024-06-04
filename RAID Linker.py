@@ -1,5 +1,4 @@
 import pandas as pd
-import Alteryx
 
 # Read input data
 input_1 = Alteryx.read("#1")
