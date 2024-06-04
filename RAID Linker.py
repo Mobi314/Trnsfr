@@ -24,9 +24,8 @@ business_outcome_keys = set(input_4['Business Outcome JIRA Key'].tolist())
 all_rows = []
 
 # Initialize columns for failed linkages
-input_1['Failed Program Linkages'] = ''
-input_1['Failed Project Linkages'] = ''
-input_1['Failed Business Outcome Linkages'] = ''
+input_1['Failed Project-Program Linkage'] = ''
+input_1['Failed Item Linkage'] = ''
 
 # Process each RAID record
 for index, row in input_1.iterrows():
@@ -37,9 +36,8 @@ for index, row in input_1.iterrows():
     linked = False
 
     # Track failed linkages
-    failed_programs = []
-    failed_projects = []
-    failed_business_outcomes = []
+    failed_project_programs = []
+    failed_items = []
 
     # Process Program and Project keys
     for key in combined_program_project_keys:
@@ -58,11 +56,7 @@ for index, row in input_1.iterrows():
             all_rows.append(new_row)
             linked = True
         else:
-            if key not in program_keys and key not in project_keys:
-                if key not in project_keys:
-                    failed_programs.append(key)
-                if key not in program_keys:
-                    failed_projects.append(key)
+            failed_project_programs.append(key)
 
     # Process Business Outcome keys
     for key in combined_items_keys:
@@ -74,24 +68,21 @@ for index, row in input_1.iterrows():
             all_rows.append(new_row)
             linked = True
         else:
-            if key not in business_outcome_keys:
-                failed_business_outcomes.append(key)
+            failed_items.append(key)
 
     # If no keys matched, keep the original row
     if not linked:
         all_rows.append(row)
 
     # Update failed linkages columns
-    row['Failed Program Linkages'] = ','.join(failed_programs)
-    row['Failed Project Linkages'] = ','.join(failed_projects)
-    row['Failed Business Outcome Linkages'] = ','.join(failed_business_outcomes)
+    row['Failed Project-Program Linkage'] = ','.join(failed_project_programs)
+    row['Failed Item Linkage'] = ','.join(failed_items)
 
 # Convert the list of new rows to a DataFrame
 final_df = pd.DataFrame(all_rows)
 
 # Output the final dataframe
 Alteryx.write(final_df, 1)
-
 
 
 import pandas as pd
