@@ -1,3 +1,8 @@
+IIF(ISNULL([Linked Programs 0]), "", [Linked Programs 0]) +
+IIF(ISNULL([Linked Programs 1]) OR [Linked Programs 1] = "", "", IIF(ISNULL([Linked Programs 0]) OR [Linked Programs 0] = "", "", " ") + [Linked Programs 1]) +
+IIF(ISNULL([Linked Programs 2]) OR [Linked Programs 2] = "", "", IIF((ISNULL([Linked Programs 0]) OR [Linked Programs 0] = "") AND (ISNULL([Linked Programs 1]) OR [Linked Programs 1] = ""), "", " ") + [Linked Programs 2]) +
+IIF(ISNULL([Linked Programs 3]) OR [Linked Programs 3] = "", "", IIF((ISNULL([Linked Programs 0]) OR [Linked Programs 0] = "") AND (ISNULL([Linked Programs 1]) OR [Linked Programs 1] = "") AND (ISNULL([Linked Programs 2]) OR [Linked Programs 2] = ""), "", " ") + [Linked Programs 3])
+
 Programs Due at Start of Current Quarter = 
 CALCULATE (
     DISTINCTCOUNT('Current Status'[Program JIRA Key]),
