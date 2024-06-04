@@ -1,5 +1,4 @@
 import pandas as pd
-import Alteryx
 
 # Read input data
 input_1 = Alteryx.read("#1")
@@ -16,30 +15,26 @@ def combine_columns(df, keyword):
 input_1['Impacted Projects_Programs Combined'] = combine_columns(input_1, 'Impacted Project')
 input_1['Impacted Items Combined'] = combine_columns(input_1, 'Impacted Items')
 
-# Add "Original?" and "Unlinked" columns
-input_1['Original?'] = True
-input_1['Unlinked'] = input_1.apply(lambda row: row['Impacted Projects_Programs Combined'] == '' and row['Impacted Items Combined'] == '', axis=1)
-
 # Initialize lists to store new rows for each hierarchy type
 all_rows = []
 
 # Helper function to create new rows for linked keys
 def create_linked_rows(row, keys, combined_column, key_column):
     rows = []
-    matched = False
-    for key in keys:
-        if key in row[combined_column].split(','):
+    combined_keys = row[combined_column].split(',')
+    for key in combined_keys:
+        if key in keys:
             new_row = row.copy()
             new_row['Linked Program Key'] = ''
             new_row['Linked Project Key'] = ''
             new_row['Linked Business Outcome Key'] = ''
             new_row[key_column] = key
-            new_row['Original?'] = False
             rows.append(new_row)
-            matched = True
-    if not matched:
+    if not rows:
         rows.append(row)
     return rows
+
+# Process each RAID record by checking against hierarchy input streams
 
 # Process Program JIRA Keys
 program_keys = input_2['Program JIRA Key'].tolist()
