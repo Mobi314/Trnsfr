@@ -1,5 +1,4 @@
 import pandas as pd
-import Alteryx
 
 # Read input data
 input_1 = Alteryx.read("#1")
@@ -60,7 +59,10 @@ for index, row in input_1.iterrows():
             linked = True
         else:
             if key not in program_keys and key not in project_keys:
-                failed_programs.append(key)
+                if key not in project_keys:
+                    failed_programs.append(key)
+                if key not in program_keys:
+                    failed_projects.append(key)
 
     # Process Business Outcome keys
     for key in combined_items_keys:
