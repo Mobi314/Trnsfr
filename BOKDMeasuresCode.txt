@@ -1,0 +1,163 @@
+BO Effective End Date = 
+IF(
+    'Current Status'[Business Outcomes Status] IN {"Closed", "Pending Closure"}, 
+    'Current Status'[Business Outcomes Actual End Date Formatted], 
+    IF(
+        ISBLANK('Current Status'[Business Outcomes End Date]), 
+        'Current Status'[Business Outcome Baseline End Date Formatted], 
+        'Current Status'[Business Outcomes End Date]
+    )
+)
+
+Previous Fiscal Year = 
+VAR SelectedDate = SELECTEDVALUE('Current Status'[Date])
+VAR FiscalYearStart = IF(MONTH(SelectedDate) >= 4, YEAR(SelectedDate), YEAR(SelectedDate) - 1)
+RETURN 
+    FORMAT(FiscalYearStart - 1, "0000") & "/" & FORMAT(FiscalYearStart, "0000")
+
+Current Fiscal Year = 
+VAR SelectedDate = SELECTEDVALUE('Current Status'[Date])
+VAR FiscalYearStart = IF(MONTH(SelectedDate) >= 4, YEAR(SelectedDate), YEAR(SelectedDate) - 1)
+RETURN 
+    FORMAT(FiscalYearStart, "0000") & "/" & FORMAT(FiscalYearStart + 1, "0000")
+
+Next Fiscal Year = 
+VAR SelectedDate = SELECTEDVALUE('Current Status'[Date])
+VAR FiscalYearStart = IF(MONTH(SelectedDate) >= 4, YEAR(SelectedDate), YEAR(SelectedDate) - 1)
+RETURN 
+    FORMAT(FiscalYearStart + 1, "0000") & "/" & FORMAT(FiscalYearStart + 2, "0000")
+
+BO_Previous_Q3 = 
+VAR SelectedDate = SELECTEDVALUE('Current Status'[Date])
+VAR FiscalYearStart = IF(MONTH(SelectedDate) >= 4, YEAR(SelectedDate), YEAR(SelectedDate) - 1)
+VAR PreviousFiscalYearStart = FiscalYearStart - 1
+RETURN 
+    CALCULATE(
+        DISTINCTCOUNT('Current Status'[Business Outcome JIRA Key]), 
+        FILTER(
+            'Current Status', 
+            'Current Status'[BO Effective End Date] >= DATE(PreviousFiscalYearStart, 10, 1) &&
+            'Current Status'[BO Effective End Date] <= DATE(PreviousFiscalYearStart, 12, 31)
+        )
+    )
+
+BO_Previous_Q4 = 
+VAR SelectedDate = SELECTEDVALUE('Current Status'[Date])
+VAR FiscalYearStart = IF(MONTH(SelectedDate) >= 4, YEAR(SelectedDate), YEAR(SelectedDate) - 1)
+VAR PreviousFiscalYearStart = FiscalYearStart - 1
+RETURN 
+    CALCULATE(
+        DISTINCTCOUNT('Current Status'[Business Outcome JIRA Key]), 
+        FILTER(
+            'Current Status', 
+            'Current Status'[BO Effective End Date] >= DATE(PreviousFiscalYearStart + 1, 1, 1) &&
+            'Current Status'[BO Effective End Date] <= DATE(PreviousFiscalYearStart + 1, 3, 31)
+        )
+    )
+
+BO_Current_Q1 = 
+VAR SelectedDate = SELECTEDVALUE('Current Status'[Date])
+VAR FiscalYearStart = IF(MONTH(SelectedDate) >= 4, YEAR(SelectedDate), YEAR(SelectedDate) - 1)
+RETURN 
+    CALCULATE(
+        DISTINCTCOUNT('Current Status'[Business Outcome JIRA Key]), 
+        FILTER(
+            'Current Status', 
+            'Current Status'[BO Effective End Date] >= DATE(FiscalYearStart, 4, 1) &&
+            'Current Status'[BO Effective End Date] <= DATE(FiscalYearStart, 6, 30)
+        )
+    )
+
+BO_Current_Q2 = 
+VAR SelectedDate = SELECTEDVALUE('Current Status'[Date])
+VAR FiscalYearStart = IF(MONTH(SelectedDate) >= 4, YEAR(SelectedDate), YEAR(SelectedDate) - 1)
+RETURN 
+    CALCULATE(
+        DISTINCTCOUNT('Current Status'[Business Outcome JIRA Key]), 
+        FILTER(
+            'Current Status', 
+            'Current Status'[BO Effective End Date] >= DATE(FiscalYearStart, 7, 1) &&
+            'Current Status'[BO Effective End Date] <= DATE(FiscalYearStart, 9, 30)
+        )
+    )
+BO_Current_Q3 = 
+VAR SelectedDate = SELECTEDVALUE('Current Status'[Date])
+VAR FiscalYearStart = IF(MONTH(SelectedDate) >= 4, YEAR(SelectedDate), YEAR(SelectedDate) - 1)
+RETURN 
+    CALCULATE(
+        DISTINCTCOUNT('Current Status'[Business Outcome JIRA Key]), 
+        FILTER(
+            'Current Status', 
+            'Current Status'[BO Effective End Date] >= DATE(FiscalYearStart, 10, 1) &&
+            'Current Status'[BO Effective End Date] <= DATE(FiscalYearStart, 12, 31)
+        )
+    )
+
+BO_Current_Q4 = 
+VAR SelectedDate = SELECTEDVALUE('Current Status'[Date])
+VAR FiscalYearStart = IF(MONTH(SelectedDate) >= 4, YEAR(SelectedDate), YEAR(SelectedDate) - 1)
+RETURN 
+    CALCULATE(
+        DISTINCTCOUNT('Current Status'[Business Outcome JIRA Key]), 
+        FILTER(
+            'Current Status', 
+            'Current Status'[BO Effective End Date] >= DATE(FiscalYearStart + 1, 1, 1) &&
+            'Current Status'[BO Effective End Date] <= DATE(FiscalYearStart + 1, 3, 31)
+        )
+    )
+
+BO_Next_Q1 = 
+VAR SelectedDate = SELECTEDVALUE('Current Status'[Date])
+VAR FiscalYearStart = IF(MONTH(SelectedDate) >= 4, YEAR(SelectedDate), YEAR(SelectedDate) - 1)
+VAR NextFiscalYearStart = FiscalYearStart + 1
+RETURN 
+    CALCULATE(
+        DISTINCTCOUNT('Current Status'[Business Outcome JIRA Key]), 
+        FILTER(
+            'Current Status', 
+            'Current Status'[BO Effective End Date] >= DATE(NextFiscalYearStart, 4, 1) &&
+            'Current Status'[BO Effective End Date] <= DATE(NextFiscalYearStart, 6, 30)
+        )
+    )
+
+BO_Next_Q2 = 
+VAR SelectedDate = SELECTEDVALUE('Current Status'[Date])
+VAR FiscalYearStart = IF(MONTH(SelectedDate) >= 4, YEAR(SelectedDate), YEAR(SelectedDate) - 1)
+VAR NextFiscalYearStart = FiscalYearStart + 1
+RETURN 
+    CALCULATE(
+        DISTINCTCOUNT('Current Status'[Business Outcome JIRA Key]), 
+        FILTER(
+            'Current Status', 
+            'Current Status'[BO Effective End Date] >= DATE(NextFiscalYearStart, 7, 1) &&
+            'Current Status'[BO Effective End Date] <= DATE(NextFiscalYearStart, 9, 30)
+        )
+    )
+
+BO_Next_Q3 = 
+VAR SelectedDate = SELECTEDVALUE('Current Status'[Date])
+VAR FiscalYearStart = IF(MONTH(SelectedDate) >= 4, YEAR(SelectedDate), YEAR(SelectedDate) - 1)
+VAR NextFiscalYearStart = FiscalYearStart + 1
+RETURN 
+    CALCULATE(
+        DISTINCTCOUNT('Current Status'[Business Outcome JIRA Key]), 
+        FILTER(
+            'Current Status', 
+            'Current Status'[BO Effective End Date] >= DATE(NextFiscalYearStart, 10, 1) &&
+            'Current Status'[BO Effective End Date] <= DATE(NextFiscalYearStart, 12, 31)
+        )
+    )
+
+BO_Next_Q4 = 
+VAR SelectedDate = SELECTEDVALUE('Current Status'[Date])
+VAR FiscalYearStart = IF(MONTH(SelectedDate) >= 4, YEAR(SelectedDate), YEAR(SelectedDate) - 1)
+VAR NextFiscalYearStart = FiscalYearStart + 1
+RETURN 
+    CALCULATE(
+        DISTINCTCOUNT('Current Status'[Business Outcome JIRA Key]), 
+        FILTER(
+            'Current Status', 
+            'Current Status'[BO Effective End Date] >= DATE(NextFiscalYearStart + 1, 1, 1) &&
+            'Current Status'[BO Effective End Date] <= DATE(NextFiscalYearStart + 1, 3, 31)
+        )
+    )
