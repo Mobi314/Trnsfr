@@ -1,0 +1,27 @@
+Total Risks = 
+CALCULATE(
+    COUNT('RAID Daily Combined Snapshot'[RAID Type]),
+    'RAID Daily Combined Snapshot'[RAID Type] = "Risk",
+    RELATED('Sheet2'[Program JIRA Key]) = 'RAID Daily Combined Snapshot'[Parent Program JIRA Key]
+)
+
+Total Assumptions = 
+CALCULATE(
+    COUNT('RAID Daily Combined Snapshot'[RAID Type]),
+    'RAID Daily Combined Snapshot'[RAID Type] = "Assumption",
+    RELATED('Sheet2'[Program JIRA Key]) = 'RAID Daily Combined Snapshot'[Parent Program JIRA Key]
+)
+
+Total Issues = 
+CALCULATE(
+    COUNT('RAID Daily Combined Snapshot'[RAID Type]),
+    'RAID Daily Combined Snapshot'[RAID Type] = "Issue",
+    RELATED('Sheet2'[Program JIRA Key]) = 'RAID Daily Combined Snapshot'[Parent Program JIRA Key]
+)
+
+Total Dependencies = 
+CALCULATE(
+    COUNT('RAID Daily Combined Snapshot'[RAID Type]),
+    'RAID Daily Combined Snapshot'[RAID Type] = "Dependency",
+    RELATED('Sheet2'[Program JIRA Key]) = 'RAID Daily Combined Snapshot'[Parent Program JIRA Key]
+)
