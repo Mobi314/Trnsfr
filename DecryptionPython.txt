@@ -1,6 +1,6 @@
 import pandas as pd
 import win32com.client as win32
-import xlwings as xw
+import os
 import Alteryx
 
 # Read In Alteryx Input variables
@@ -35,38 +35,26 @@ def reencrypt_password_xlsx(temp_file_path, original_file_path, password):
     wb.Close(False)  # Ensure workbook is properly closed
     xcl.Quit()
 
-# Function to read a non-password-protected Excel file
-def read_xlsx(file_dir_path):
-    wb = xw.Book(file_dir_path, read_only=True)
-    return wb
-
 # Remove the password from the file
 temp_file_path = remove_password_xlsx(PATH, PASSWORD)
-
-# Read the workbook without password
-wb = read_xlsx(temp_file_path)
 
 # Initialize output DataFrame
 out = pd.DataFrame()
 
 # Loop through sheets and append each sheet's data to pandas dataframe
 try:
-    for sheet in SHEETS:
-        allin = wb.sheets[sheet].used_range.value
-        df = pd.DataFrame(allin[1:], columns=allin[0])  # Use the first row as headers
-        df["SheetName"] = sheet
-        out = pd.concat([out, df], ignore_index=True)
+    with pd.ExcelFile(temp_file_path) as xls:
+        for sheet in SHEETS:
+            df = pd.read_excel(xls, sheet_name=sheet)
+            df["SheetName"] = sheet
+            out = pd.concat([out, df], ignore_index=True)
 except Exception as e:
     print(f"An error has occurred: {e}")
-
-# Close the workbook
-wb.close()
 
 # Re-encrypt the Excel file with the same password
 reencrypt_password_xlsx(temp_file_path, PATH, PASSWORD)
 
 # Remove temporary file
-import os
 os.remove(temp_file_path)
 
 # Unify the format to string for pre-processing
@@ -85,8 +73,6 @@ if __name__ == '__main__':
         print(f"Password Removal Failed: {e}")
     else:
         print("Success: Password Removed")
-
-
 
 
 --------------------------------------------------------------------------------------------------------------------------------------
