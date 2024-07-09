@@ -1,5 +1,7 @@
 import pandas as pd
 import win32com.client as win32
+import xlwings as xw
+import shutil
 import os
 import Alteryx
 
@@ -15,47 +17,60 @@ PATH = FilePath
 SHEETS = list(SheetNames)
 PASSWORD = ExcelPwd
 
-# Function to remove password from an Excel file
-def remove_password_xlsx(file_dir_path, password):
-    xcl = win32.Dispatch("Excel.Application")
-    wb = xcl.Workbooks.Open(file_dir_path, False, False, None, password)
-    xcl.DisplayAlerts = False
-    temp_path = file_dir_path.replace(".xlsx", "_temp.xlsx")
-    wb.SaveAs(temp_path, None, '.', '.')
-    wb.Close(False)  # Ensure workbook is properly closed
-    xcl.Quit()
+# Function to create a temporary copy of the Excel file
+def create_temp_copy(file_path):
+    temp_path = file_path.replace(".xlsx", "_temp.xlsx")
+    shutil.copy(file_path, temp_path)
     return temp_path
 
-# Function to re-encrypt the Excel file with the same password
-def reencrypt_password_xlsx(temp_file_path, original_file_path, password):
-    xcl = win32.Dispatch("Excel.Application")
-    wb = xcl.Workbooks.Open(temp_file_path)
-    xcl.DisplayAlerts = False
-    wb.SaveAs(original_file_path, Password=password)
-    wb.Close(False)  # Ensure workbook is properly closed
-    xcl.Quit()
+# Function to remove password from an Excel file
+def remove_password_xlsx(file_dir_path, password):
+    try:
+        xcl = win32.Dispatch("Excel.Application")
+        wb = xcl.Workbooks.Open(file_dir_path, False, False, None, password)
+        xcl.DisplayAlerts = False
+        wb.SaveAs(file_dir_path, None, '.', '.')
+        wb.Close(False)  # Ensure workbook is properly closed
+        xcl.Quit()
+        print(f"Password removed from temporary file: {file_dir_path}")
+    except Exception as e:
+        print(f"Failed to remove password: {e}")
+        raise
 
-# Remove the password from the file
-temp_file_path = remove_password_xlsx(PATH, PASSWORD)
+# Create a temporary copy of the original file
+temp_file_path = create_temp_copy(PATH)
+
+# Remove the password from the temporary file
+remove_password_xlsx(temp_file_path, PASSWORD)
 
 # Initialize output DataFrame
 out = pd.DataFrame()
 
-# Loop through sheets and append each sheet's data to pandas dataframe
-try:
-    with pd.ExcelFile(temp_file_path) as xls:
-        for sheet in SHEETS:
-            df = pd.read_excel(xls, sheet_name=sheet)
+# Function to read the temporary file and process the sheets
+def process_sheets(temp_file_path, sheets):
+    wb = xw.Book(temp_file_path)
+    try:
+        for sheet in sheets:
+            allin = wb.sheets[sheet].used_range.value
+            df = pd.DataFrame(allin[1:], columns=allin[0])  # Use the first row as headers
             df["SheetName"] = sheet
             out = pd.concat([out, df], ignore_index=True)
-except Exception as e:
-    print(f"An error has occurred: {e}")
+            print(f"Processed sheet: {sheet}")
+    except Exception as e:
+        print(f"An error occurred while processing sheets: {e}")
+    finally:
+        wb.close()
+    return out
 
-# Re-encrypt the Excel file with the same password
-reencrypt_password_xlsx(temp_file_path, PATH, PASSWORD)
+# Process the sheets and get the data
+out = process_sheets(temp_file_path, SHEETS)
 
 # Remove temporary file
-os.remove(temp_file_path)
+try:
+    os.remove(temp_file_path)
+    print(f"Temporary file {temp_file_path} removed")
+except Exception as e:
+    print(f"Failed to remove temporary file: {e}")
 
 # Unify the format to string for pre-processing
 out.columns = out.columns.astype(str)
@@ -68,7 +83,8 @@ if __name__ == '__main__':
     password = ExcelPwd
 
     try:
-        temp_file_path = remove_password_xlsx(file_dir_path, password)
+        temp_file_path = create_temp_copy(file_dir_path)
+        remove_password_xlsx(temp_file_path, password)
     except Exception as e:
         print(f"Password Removal Failed: {e}")
     else:
