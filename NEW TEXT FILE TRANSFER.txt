@@ -1,0 +1,12 @@
+FIC_JIRA_Key_Exists = 
+IF(
+    ISBLANK(
+        LOOKUPVALUE(
+            'FIC Consolidation Key Table'[Business Outcome JIRA Key],
+            'FIC Consolidation Key Table'[Business Outcome JIRA Key], 
+            'Current Status'[Business Outcome JIRA Key]
+        )
+    ),
+    "No", 
+    "Yes"
+)
