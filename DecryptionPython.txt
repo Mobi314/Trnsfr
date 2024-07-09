@@ -50,8 +50,11 @@ out.columns = out.columns.astype(str)
 # Close the workbook
 wb.close()
 
+# Ensure the output is a pandas Series before writing to Alteryx
+out_series = out.apply(lambda row: row.to_json(), axis=1)
+
 # Write output to Alteryx
-Alteryx.write(out, 1)
+Alteryx.write(out_series, 1)
 
 if __name__ == '__main__':
     file_dir_path = FilePath
