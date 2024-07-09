@@ -16,31 +16,33 @@ SHEETS = list(SheetNames)
 PASSWORD = ExcelPwd
 
 # Function to remove password from an Excel file
-def Remove_password_xlsx(file_dir_path, password):
+def remove_password_xlsx(file_dir_path, password):
     xcl = win32com.client.Dispatch("Excel.Application")
     wb = xcl.Workbooks.Open(file_dir_path, False, False, None, password)
     xcl.DisplayAlerts = False
     wb.SaveAs(file_dir_path, None, '.', '.')
+    wb.Close(False)  # Ensure workbook is properly closed
     xcl.Quit()
 
 # Function to re-encrypt the Excel file with the same password
-def Reencrypt_password_xlsx(file_dir_path, password):
+def reencrypt_password_xlsx(file_dir_path, password):
     xcl = win32com.client.Dispatch("Excel.Application")
     wb = xcl.Workbooks.Open(file_dir_path)
     xcl.DisplayAlerts = False
     wb.SaveAs(file_dir_path, Password=password)
+    wb.Close(False)  # Ensure workbook is properly closed
     xcl.Quit()
 
 # Function to read a password-protected Excel file
-def Read_password_xlsx(file_dir_path, password):
+def read_password_xlsx(file_dir_path, password):
     wb = xw.Book(file_dir_path, password=password, read_only=True)
     return wb
 
 # Remove the password from the file
-Remove_password_xlsx(PATH, PASSWORD)
+remove_password_xlsx(PATH, PASSWORD)
 
 # Read the workbook without password
-wb = Read_password_xlsx(PATH, PASSWORD)
+wb = read_password_xlsx(PATH, PASSWORD)
 
 # Initialize output DataFrame
 out = pd.DataFrame()
@@ -55,14 +57,14 @@ try:
 except Exception as e:
     print(f"An error has occurred: {e}")
 
+# Close the workbook
+wb.close()
+
 # Re-encrypt the Excel file with the same password
-Reencrypt_password_xlsx(PATH, PASSWORD)
+reencrypt_password_xlsx(PATH, PASSWORD)
 
 # Unify the format to string for pre-processing
 out.columns = out.columns.astype(str)
-
-# Close the workbook
-wb.close()
 
 # Write output to Alteryx
 Alteryx.write(out, 1)
@@ -72,11 +74,12 @@ if __name__ == '__main__':
     password = ExcelPwd
 
     try:
-        Remove_password_xlsx(file_dir_path, password)
+        remove_password_xlsx(file_dir_path, password)
     except Exception as e:
         print(f"Password Removal Failed: {e}")
     else:
         print("Success: Password Removed")
+
 
 
 --------------------------------------------------------------------------------------------------------------------------------------
