@@ -50,11 +50,10 @@ out.columns = out.columns.astype(str)
 # Close the workbook
 wb.close()
 
-# Ensure the output is a pandas Series before writing to Alteryx
-out_series = out.apply(lambda row: row.to_json(), axis=1)
-
-# Write output to Alteryx
-Alteryx.write(out_series, 1)
+# Write output to Alteryx (ensure out is a DataFrame)
+if isinstance(out, pd.DataFrame):
+    for i in range(len(out)):
+        Alteryx.write(out.iloc[i], 1)
 
 if __name__ == '__main__':
     file_dir_path = FilePath
@@ -66,6 +65,7 @@ if __name__ == '__main__':
         print(f"Password Removal Failed: {e}")
     else:
         print("Success: Password Removed")
+
 
 ---------------------------------------------------------------------------------------------------------
 import pandas as pd
