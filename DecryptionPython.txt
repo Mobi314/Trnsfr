@@ -1,0 +1,66 @@
+import pandas as pd
+import win32com.client
+import xlwings as xw
+import Alteryx
+
+# Read In Alteryx Input variables
+df1 = Alteryx.read("#1")
+
+FilePath = df1["filePath"][0]
+SheetNames = df1["SheetNames"]
+ExcelPwd = df1["ExcelPwd"][0]
+
+# Define File, Sheets, Password
+PATH = FilePath
+SHEETS = list(SheetNames)
+PASSWORD = ExcelPwd
+
+# Create a function to read a file and remove password
+def Remove_password_xlsx(file_dir_path, password):
+    xcl = win32com.client.Dispatch("Excel.Application")
+    wb = xcl.Workbooks.Open(file_dir_path, False, False, None, password)
+    xcl.DisplayAlerts = False
+    wb.SaveAs(file_dir_path, None, '.', '.')
+    xcl.Quit()
+
+# Create a function to read a file and remove password
+def Read_password_xlsx(file_dir_path, password):
+    wb = xw.Book(PATH, password=PASSWORD, read_only=True)
+    return wb
+
+# Read the workbook with password removed
+wb = Read_password_xlsx(PATH, PASSWORD)
+
+# Initialize output DataFrame
+out = pd.DataFrame()
+
+# Loop thru wb and append each sheet's data to pandas dataframe
+try:
+    for sheet in SHEETS:
+        allin = wb.sheets[sheet].used_range.value
+        df = pd.DataFrame(allin)
+        df["SheetName"] = sheet
+        df = df.tail(-1)  # Drop first row in dataframe
+        out = pd.concat([out, df], ignore_index=True)
+except Exception as e:
+    print(f"An error has occurred: {e}")
+
+# Unify the format to string for pre-processing
+out.columns = out.columns.astype(str)
+
+# Close the workbook
+wb.close()
+
+# Write output to Alteryx
+Alteryx.write(out, 1)
+
+if __name__ == '__main__':
+    file_dir_path = FilePath
+    password = ExcelPwd
+
+    try:
+        Remove_password_xlsx(file_dir_path, password)
+    except Exception as e:
+        print(f"Password Removal Failed: {e}")
+    else:
+        print("Success: Password Removed")
