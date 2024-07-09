@@ -1,90 +1,4 @@
 import pandas as pd
-import win32com.client as win32
-import shutil
-import os
-import Alteryx
-
-# Read In Alteryx Input variables
-df1 = Alteryx.read("#1")
-
-FilePath = df1["filePath"][0]
-SheetNames = df1["SheetNames"]
-ExcelPwd = df1["ExcelPwd"][0]
-
-# Define File, Sheets, Password
-PATH = FilePath
-SHEETS = list(SheetNames)
-PASSWORD = ExcelPwd
-
-# Function to create a temporary copy of the Excel file
-def create_temp_copy(file_path):
-    temp_path = file_path.replace(".xlsx", "_temp.xlsx")
-    shutil.copy(file_path, temp_path)
-    return temp_path
-
-# Function to remove password from an Excel file
-def remove_password_xlsx(file_dir_path, password):
-    try:
-        xcl = win32.Dispatch("Excel.Application")
-        wb = xcl.Workbooks.Open(file_dir_path, False, False, None, password)
-        xcl.DisplayAlerts = False
-        wb.SaveAs(file_dir_path, None, '.', '.')
-        wb.Close(False)  # Ensure workbook is properly closed
-        xcl.Quit()
-        print(f"Password removed from temporary file: {file_dir_path}")
-    except Exception as e:
-        print(f"Failed to remove password: {e}")
-        raise
-
-# Function to read data from an Excel file using pandas
-def read_excel(file_path, sheets):
-    out = pd.DataFrame()
-    with pd.ExcelFile(file_path) as xls:
-        for sheet in sheets:
-            df = pd.read_excel(xls, sheet_name=sheet)
-            df["SheetName"] = sheet
-            out = pd.concat([out, df], ignore_index=True)
-    return out
-
-# Create a temporary copy of the original file
-temp_file_path = create_temp_copy(PATH)
-
-# Remove the password from the temporary file
-remove_password_xlsx(temp_file_path, PASSWORD)
-
-# Read the workbook without password and process data
-out = read_excel(temp_file_path, SHEETS)
-
-# Unify the format to string for pre-processing
-out.columns = out.columns.astype(str)
-
-# Remove the temporary file
-try:
-    os.remove(temp_file_path)
-    print(f"Temporary file {temp_file_path} removed")
-except Exception as e:
-    print(f"Failed to remove temporary file: {e}")
-
-# Write output to Alteryx
-Alteryx.write(out, 1)
-
-if __name__ == '__main__':
-    file_dir_path = FilePath
-    password = ExcelPwd
-
-    try:
-        temp_file_path = create_temp_copy(file_dir_path)
-        remove_password_xlsx(temp_file_path, password)
-    except Exception as e:
-        print(f"Password Removal Failed: {e}")
-    else:
-        print("Success: Password Removed")
-
-
---------------------------------------------------------------------------------------------------------------------------------------
-
-
-import pandas as pd
 import win32com.client
 import xlwings as xw
 import Alteryx
@@ -92,7 +6,7 @@ import Alteryx
 # Read In Alteryx Input variables
 df1 = Alteryx.read("#1")
 
-FilePath = df1["filePath"][0]
+FilePath = df1["FilePath"][0]
 SheetNames = df1["SheetNames"]
 ExcelPwd = df1["ExcelPwd"][0]
 
@@ -124,9 +38,9 @@ out = pd.DataFrame()
 try:
     for sheet in SHEETS:
         allin = wb.sheets[sheet].used_range.value
-        df = pd.DataFrame(allin)
+        df = pd.DataFrame(allin[1:], columns=allin[0])
         df["SheetName"] = sheet
-        df = df.tail(-1)  # Drop first row in dataframe
+        #df = df.tail(-1)  # Drop first row in dataframe
         out = pd.concat([out, df], ignore_index=True)
 except Exception as e:
     print(f"An error has occurred: {e}")
