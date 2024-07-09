@@ -1,6 +1,5 @@
 import pandas as pd
 import win32com.client as win32
-import xlwings as xw
 import shutil
 import os
 import Alteryx
@@ -25,17 +24,27 @@ def create_temp_copy(file_path):
 
 # Function to remove password from an Excel file
 def remove_password_xlsx(file_dir_path, password):
-    xcl = win32.Dispatch("Excel.Application")
-    wb = xcl.Workbooks.Open(file_dir_path, False, False, None, password)
-    xcl.DisplayAlerts = False
-    wb.SaveAs(file_dir_path, None, '.', '.')
-    wb.Close(False)  # Ensure workbook is properly closed
-    xcl.Quit()
+    try:
+        xcl = win32.Dispatch("Excel.Application")
+        wb = xcl.Workbooks.Open(file_dir_path, False, False, None, password)
+        xcl.DisplayAlerts = False
+        wb.SaveAs(file_dir_path, None, '.', '.')
+        wb.Close(False)  # Ensure workbook is properly closed
+        xcl.Quit()
+        print(f"Password removed from temporary file: {file_dir_path}")
+    except Exception as e:
+        print(f"Failed to remove password: {e}")
+        raise
 
-# Function to read a non-password protected file
-def read_xlsx(file_dir_path):
-    wb = xw.Book(file_dir_path)
-    return wb
+# Function to read data from an Excel file using pandas
+def read_excel(file_path, sheets):
+    out = pd.DataFrame()
+    with pd.ExcelFile(file_path) as xls:
+        for sheet in sheets:
+            df = pd.read_excel(xls, sheet_name=sheet)
+            df["SheetName"] = sheet
+            out = pd.concat([out, df], ignore_index=True)
+    return out
 
 # Create a temporary copy of the original file
 temp_file_path = create_temp_copy(PATH)
@@ -43,27 +52,11 @@ temp_file_path = create_temp_copy(PATH)
 # Remove the password from the temporary file
 remove_password_xlsx(temp_file_path, PASSWORD)
 
-# Read the workbook without password
-wb = read_xlsx(temp_file_path)
-
-# Initialize output DataFrame
-out = pd.DataFrame()
-
-# Loop through wb and append each sheet's data to pandas dataframe
-try:
-    for sheet in SHEETS:
-        allin = wb.sheets[sheet].used_range.value
-        df = pd.DataFrame(allin[1:], columns=allin[0])  # Use the first row as headers
-        df["SheetName"] = sheet
-        out = pd.concat([out, df], ignore_index=True)
-except Exception as e:
-    print(f"An error has occurred: {e}")
+# Read the workbook without password and process data
+out = read_excel(temp_file_path, SHEETS)
 
 # Unify the format to string for pre-processing
 out.columns = out.columns.astype(str)
-
-# Close the workbook
-wb.close()
 
 # Remove the temporary file
 try:
