@@ -1,5 +1,5 @@
 import pandas as pd
-import win32com.client
+import win32com.client as win32
 import xlwings as xw
 import Alteryx
 
@@ -17,32 +17,34 @@ PASSWORD = ExcelPwd
 
 # Function to remove password from an Excel file
 def remove_password_xlsx(file_dir_path, password):
-    xcl = win32com.client.Dispatch("Excel.Application")
+    xcl = win32.Dispatch("Excel.Application")
     wb = xcl.Workbooks.Open(file_dir_path, False, False, None, password)
     xcl.DisplayAlerts = False
-    wb.SaveAs(file_dir_path, None, '.', '.')
+    temp_path = file_dir_path.replace(".xlsx", "_temp.xlsx")
+    wb.SaveAs(temp_path, None, '.', '.')
     wb.Close(False)  # Ensure workbook is properly closed
     xcl.Quit()
+    return temp_path
 
 # Function to re-encrypt the Excel file with the same password
-def reencrypt_password_xlsx(file_dir_path, password):
-    xcl = win32com.client.Dispatch("Excel.Application")
-    wb = xcl.Workbooks.Open(file_dir_path)
+def reencrypt_password_xlsx(temp_file_path, original_file_path, password):
+    xcl = win32.Dispatch("Excel.Application")
+    wb = xcl.Workbooks.Open(temp_file_path)
     xcl.DisplayAlerts = False
-    wb.SaveAs(file_dir_path, Password=password)
+    wb.SaveAs(original_file_path, Password=password)
     wb.Close(False)  # Ensure workbook is properly closed
     xcl.Quit()
 
-# Function to read a password-protected Excel file
-def read_password_xlsx(file_dir_path, password):
-    wb = xw.Book(file_dir_path, password=password, read_only=True)
+# Function to read a non-password-protected Excel file
+def read_xlsx(file_dir_path):
+    wb = xw.Book(file_dir_path, read_only=True)
     return wb
 
 # Remove the password from the file
-remove_password_xlsx(PATH, PASSWORD)
+temp_file_path = remove_password_xlsx(PATH, PASSWORD)
 
 # Read the workbook without password
-wb = read_password_xlsx(PATH, PASSWORD)
+wb = read_xlsx(temp_file_path)
 
 # Initialize output DataFrame
 out = pd.DataFrame()
@@ -61,7 +63,11 @@ except Exception as e:
 wb.close()
 
 # Re-encrypt the Excel file with the same password
-reencrypt_password_xlsx(PATH, PASSWORD)
+reencrypt_password_xlsx(temp_file_path, PATH, PASSWORD)
+
+# Remove temporary file
+import os
+os.remove(temp_file_path)
 
 # Unify the format to string for pre-processing
 out.columns = out.columns.astype(str)
@@ -74,11 +80,12 @@ if __name__ == '__main__':
     password = ExcelPwd
 
     try:
-        remove_password_xlsx(file_dir_path, password)
+        temp_file_path = remove_password_xlsx(file_dir_path, password)
     except Exception as e:
         print(f"Password Removal Failed: {e}")
     else:
         print("Success: Password Removed")
+
 
 
 
