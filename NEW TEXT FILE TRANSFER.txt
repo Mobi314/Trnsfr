@@ -10,3 +10,11 @@ IF(
     "No", 
     "Yes"
 )
+
+    VAR FIC_Check = 
+        IF(
+            'Current Status'[FIC_JIRA_Key_Exists] = "Yes" && 
+            'Current Status'[Program JIRA Key] = "SRC-504",
+            TRUE(),
+            TRUE() -- Default to TRUE to include items not in FIC
+        )
