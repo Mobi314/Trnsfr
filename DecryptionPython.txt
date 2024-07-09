@@ -25,17 +25,17 @@ def create_temp_copy(file_path):
 
 # Function to remove password from an Excel file
 def remove_password_xlsx(file_dir_path, password):
-    try:
-        xcl = win32.Dispatch("Excel.Application")
-        wb = xcl.Workbooks.Open(file_dir_path, False, False, None, password)
-        xcl.DisplayAlerts = False
-        wb.SaveAs(file_dir_path, None, '.', '.')
-        wb.Close(False)  # Ensure workbook is properly closed
-        xcl.Quit()
-        print(f"Password removed from temporary file: {file_dir_path}")
-    except Exception as e:
-        print(f"Failed to remove password: {e}")
-        raise
+    xcl = win32.Dispatch("Excel.Application")
+    wb = xcl.Workbooks.Open(file_dir_path, False, False, None, password)
+    xcl.DisplayAlerts = False
+    wb.SaveAs(file_dir_path, None, '.', '.')
+    wb.Close(False)  # Ensure workbook is properly closed
+    xcl.Quit()
+
+# Function to read a non-password protected file
+def read_xlsx(file_dir_path):
+    wb = xw.Book(file_dir_path)
+    return wb
 
 # Create a temporary copy of the original file
 temp_file_path = create_temp_copy(PATH)
@@ -43,37 +43,34 @@ temp_file_path = create_temp_copy(PATH)
 # Remove the password from the temporary file
 remove_password_xlsx(temp_file_path, PASSWORD)
 
+# Read the workbook without password
+wb = read_xlsx(temp_file_path)
+
 # Initialize output DataFrame
 out = pd.DataFrame()
 
-# Function to read the temporary file and process the sheets
-def process_sheets(temp_file_path, sheets):
-    wb = xw.Book(temp_file_path)
-    try:
-        for sheet in sheets:
-            allin = wb.sheets[sheet].used_range.value
-            df = pd.DataFrame(allin[1:], columns=allin[0])  # Use the first row as headers
-            df["SheetName"] = sheet
-            out = pd.concat([out, df], ignore_index=True)
-            print(f"Processed sheet: {sheet}")
-    except Exception as e:
-        print(f"An error occurred while processing sheets: {e}")
-    finally:
-        wb.close()
-    return out
+# Loop through wb and append each sheet's data to pandas dataframe
+try:
+    for sheet in SHEETS:
+        allin = wb.sheets[sheet].used_range.value
+        df = pd.DataFrame(allin[1:], columns=allin[0])  # Use the first row as headers
+        df["SheetName"] = sheet
+        out = pd.concat([out, df], ignore_index=True)
+except Exception as e:
+    print(f"An error has occurred: {e}")
 
-# Process the sheets and get the data
-out = process_sheets(temp_file_path, SHEETS)
+# Unify the format to string for pre-processing
+out.columns = out.columns.astype(str)
 
-# Remove temporary file
+# Close the workbook
+wb.close()
+
+# Remove the temporary file
 try:
     os.remove(temp_file_path)
     print(f"Temporary file {temp_file_path} removed")
 except Exception as e:
     print(f"Failed to remove temporary file: {e}")
-
-# Unify the format to string for pre-processing
-out.columns = out.columns.astype(str)
 
 # Write output to Alteryx
 Alteryx.write(out, 1)
