@@ -1,0 +1,15 @@
+IF [Row-1:Program JIRA Key] = [Program JIRA Key] THEN
+   IF [Row-1:Program Status] != [Program Status] THEN
+      IF [Program Status] = "Pending Closure" THEN
+         [Date]
+      ELSEIF [Row-1:Program Status] = "Pending Closure" THEN
+         [Date]
+      ELSE
+         NULL()
+      ENDIF
+   ELSE
+      NULL()
+   ENDIF
+ELSE
+   NULL()
+ENDIF
