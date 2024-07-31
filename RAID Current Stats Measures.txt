@@ -1,7 +1,55 @@
-Risk Count = 
+Risk Count Ultimate = 
 CALCULATE(
     DISTINCTCOUNT('RAID Daily Combined Snapshot'[RAID Key]),
     'RAID Daily Combined Snapshot'[RAID Type] = "Risk",
     'RAID Daily Combined Snapshot'[Parent Program JIRA Key] = MAX('Current Status'[Program JIRA Key])
 )
 
+Assumption Count Ultimate = 
+CALCULATE(
+    DISTINCTCOUNT('RAID Daily Combined Snapshot'[RAID Key]),
+    'RAID Daily Combined Snapshot'[RAID Type] = "Assumption",
+    'RAID Daily Combined Snapshot'[Parent Program JIRA Key] = MAX('Current Status'[Program JIRA Key])
+)
+
+Issue Count Ultimate = 
+CALCULATE(
+    DISTINCTCOUNT('RAID Daily Combined Snapshot'[RAID Key]),
+    'RAID Daily Combined Snapshot'[RAID Type] = "Issue",
+    'RAID Daily Combined Snapshot'[Parent Program JIRA Key] = MAX('Current Status'[Program JIRA Key])
+)
+
+Dependency Count Ultimate = 
+CALCULATE(
+    DISTINCTCOUNT('RAID Daily Combined Snapshot'[RAID Key]),
+    'RAID Daily Combined Snapshot'[RAID Type] = "Dependency",
+    'RAID Daily Combined Snapshot'[Parent Program JIRA Key] = MAX('Current Status'[Program JIRA Key])
+)
+
+Risk Count Direct Link = 
+CALCULATE(
+    DISTINCTCOUNT('RAID Daily Combined Snapshot'[RAID Key]),
+    'RAID Daily Combined Snapshot'[RAID Type] = "Risk",
+    'RAID Daily Combined Snapshot'[Linked Program Key] = MAX('Current Status'[Program JIRA Key])
+)
+
+Assumption Count Direct Link = 
+CALCULATE(
+    DISTINCTCOUNT('RAID Daily Combined Snapshot'[RAID Key]),
+    'RAID Daily Combined Snapshot'[RAID Type] = "Assumption",
+    'RAID Daily Combined Snapshot'[Linked Program Key] = MAX('Current Status'[Program JIRA Key])
+)
+
+Issue Count Direct Link = 
+CALCULATE(
+    DISTINCTCOUNT('RAID Daily Combined Snapshot'[RAID Key]),
+    'RAID Daily Combined Snapshot'[RAID Type] = "Issue",
+    'RAID Daily Combined Snapshot'[Linked Program Key] = MAX('Current Status'[Program JIRA Key])
+)
+
+Dependency Count Direct Link = 
+CALCULATE(
+    DISTINCTCOUNT('RAID Daily Combined Snapshot'[RAID Key]),
+    'RAID Daily Combined Snapshot'[RAID Type] = "Dependency",
+    'RAID Daily Combined Snapshot'[Linked Program Key] = MAX('Current Status'[Program JIRA Key])
+)
