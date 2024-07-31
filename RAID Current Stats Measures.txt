@@ -1,0 +1,6 @@
+Risk Count = 
+CALCULATE(
+    COUNTROWS('RAID Daily Combined Snapshot'),
+    'RAID Daily Combined Snapshot'[RAID Type] = "Risk",
+    'RAID Daily Combined Snapshot'[Parent Program JIRA Key] = MAX('Current Status'[Program JIRA Key])
+)
