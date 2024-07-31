@@ -1,3 +1,9 @@
+CombinedMeasure_Q4 = 
+VAR KD_Value = IF(ISBLANK([KD_Previous_Q4]), 0, [KD_Previous_Q4])
+VAR BO_Value = IF(ISBLANK([BO_Previous_Q4]), 0, [BO_Previous_Q4])
+RETURN
+FORMAT(KD_Value, "#0") & "/" & FORMAT(BO_Value, "#0")
+
 Risk Count Ultimate = 
 CALCULATE(
     DISTINCTCOUNT('RAID Daily Combined Snapshot'[RAID Key]),
