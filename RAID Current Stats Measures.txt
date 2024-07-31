@@ -2,54 +2,62 @@ Risk Count Ultimate =
 CALCULATE(
     DISTINCTCOUNT('RAID Daily Combined Snapshot'[RAID Key]),
     'RAID Daily Combined Snapshot'[RAID Type] = "Risk",
-    'RAID Daily Combined Snapshot'[Parent Program JIRA Key] = MAX('Current Status'[Program JIRA Key])
+    'RAID Daily Combined Snapshot'[Parent Program JIRA Key] = MAX('Current Status'[Program JIRA Key]),
+    'RAID Daily Combined Snapshot'[Date] = MAX('Current Status'[Date])
 )
 
 Assumption Count Ultimate = 
 CALCULATE(
     DISTINCTCOUNT('RAID Daily Combined Snapshot'[RAID Key]),
     'RAID Daily Combined Snapshot'[RAID Type] = "Assumption",
-    'RAID Daily Combined Snapshot'[Parent Program JIRA Key] = MAX('Current Status'[Program JIRA Key])
+    'RAID Daily Combined Snapshot'[Parent Program JIRA Key] = MAX('Current Status'[Program JIRA Key]),
+    'RAID Daily Combined Snapshot'[Date] = MAX('Current Status'[Date])
 )
 
-Issue Count Ultimate = 
+Issues Count Ultimate = 
 CALCULATE(
     DISTINCTCOUNT('RAID Daily Combined Snapshot'[RAID Key]),
-    'RAID Daily Combined Snapshot'[RAID Type] = "Issue",
-    'RAID Daily Combined Snapshot'[Parent Program JIRA Key] = MAX('Current Status'[Program JIRA Key])
+    'RAID Daily Combined Snapshot'[RAID Type] = "Issues",
+    'RAID Daily Combined Snapshot'[Parent Program JIRA Key] = MAX('Current Status'[Program JIRA Key]),
+    'RAID Daily Combined Snapshot'[Date] = MAX('Current Status'[Date])
 )
 
-Dependency Count Ultimate = 
+Dependences Count Ultimate = 
 CALCULATE(
     DISTINCTCOUNT('RAID Daily Combined Snapshot'[RAID Key]),
-    'RAID Daily Combined Snapshot'[RAID Type] = "Dependency",
-    'RAID Daily Combined Snapshot'[Parent Program JIRA Key] = MAX('Current Status'[Program JIRA Key])
+    'RAID Daily Combined Snapshot'[RAID Type] = "Dependences",
+    'RAID Daily Combined Snapshot'[Parent Program JIRA Key] = MAX('Current Status'[Program JIRA Key]),
+    'RAID Daily Combined Snapshot'[Date] = MAX('Current Status'[Date])
 )
 
 Risk Count Direct Link = 
 CALCULATE(
     DISTINCTCOUNT('RAID Daily Combined Snapshot'[RAID Key]),
     'RAID Daily Combined Snapshot'[RAID Type] = "Risk",
-    'RAID Daily Combined Snapshot'[Linked Program Key] = MAX('Current Status'[Program JIRA Key])
+    'RAID Daily Combined Snapshot'[Linked Program Key] = MAX('Current Status'[Program JIRA Key]),
+    'RAID Daily Combined Snapshot'[Date] = MAX('Current Status'[Date])
 )
 
 Assumption Count Direct Link = 
 CALCULATE(
     DISTINCTCOUNT('RAID Daily Combined Snapshot'[RAID Key]),
     'RAID Daily Combined Snapshot'[RAID Type] = "Assumption",
-    'RAID Daily Combined Snapshot'[Linked Program Key] = MAX('Current Status'[Program JIRA Key])
+    'RAID Daily Combined Snapshot'[Linked Program Key] = MAX('Current Status'[Program JIRA Key]),
+    'RAID Daily Combined Snapshot'[Date] = MAX('Current Status'[Date])
 )
 
-Issue Count Direct Link = 
+Issues Count Direct Link = 
 CALCULATE(
     DISTINCTCOUNT('RAID Daily Combined Snapshot'[RAID Key]),
-    'RAID Daily Combined Snapshot'[RAID Type] = "Issue",
-    'RAID Daily Combined Snapshot'[Linked Program Key] = MAX('Current Status'[Program JIRA Key])
+    'RAID Daily Combined Snapshot'[RAID Type] = "Issues",
+    'RAID Daily Combined Snapshot'[Linked Program Key] = MAX('Current Status'[Program JIRA Key]),
+    'RAID Daily Combined Snapshot'[Date] = MAX('Current Status'[Date])
 )
 
-Dependency Count Direct Link = 
+Dependences Count Direct Link = 
 CALCULATE(
     DISTINCTCOUNT('RAID Daily Combined Snapshot'[RAID Key]),
-    'RAID Daily Combined Snapshot'[RAID Type] = "Dependency",
-    'RAID Daily Combined Snapshot'[Linked Program Key] = MAX('Current Status'[Program JIRA Key])
+    'RAID Daily Combined Snapshot'[RAID Type] = "Dependences",
+    'RAID Daily Combined Snapshot'[Linked Program Key] = MAX('Current Status'[Program JIRA Key]),
+    'RAID Daily Combined Snapshot'[Date] = MAX('Current Status'[Date])
 )
