@@ -1,4 +1,15 @@
 IF [Row-1:Program JIRA Key] != [Program JIRA Key] THEN
+   // New JIRA Key, start count at 1
+   1
+ELSEIF DateTimeDiff([Row-1:Date], [Date], "days") != 1 THEN
+   // Non-consecutive date, restart count at 1
+   1
+ELSE
+   // Same JIRA Key and consecutive date, increment count
+   [Row-1:Program Pending Closure Consecutive Count] + 1
+ENDIF
+
+IF [Row-1:Program JIRA Key] != [Program JIRA Key] THEN
    // New JIRA Key
    IF [Program Status] = "Pending Closure" THEN
       [Date]
