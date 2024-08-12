@@ -1,0 +1,81 @@
+# Define input streams for Programs, Projects, Business Outcomes, and Key Deliverables
+INPUT_STREAM_PROGRAMS = ...
+INPUT_STREAM_PROJECTS = ...
+INPUT_STREAM_BUSINESS_OUTCOMES = ...
+INPUT_STREAM_KEY_DELIVERABLES = ...
+
+# Initialize dictionaries for storing relationships
+program_to_projects = {}
+project_to_business_outcomes = {}
+bo_to_key_deliverables = {}
+
+# Initialize list to store final hierarchical records
+combined_records = []
+
+# Function to trace upward from a business outcome and record the hierarchy
+function trace_upwards_from_bo(business_outcome):
+    parent = get_parent(business_outcome)
+    
+    while parent exists:
+        if parent is a Business Outcome:
+            record_linkage(business_outcome, parent)
+            parent = get_parent(parent)
+        elif parent is a Project or Program:
+            record_linkage(business_outcome, parent)
+            break
+        else:
+            break
+    
+    add_to_combined_records()
+
+# Function to trace upward from a project and record the hierarchy
+function trace_upwards_from_project(project):
+    parent = get_parent(project)
+    
+    while parent exists:
+        if parent is a Project:
+            record_linkage(project, parent)
+            parent = get_parent(parent)
+        elif parent is a Program:
+            record_linkage(project, parent)
+            break
+        else:
+            break
+    
+    add_to_combined_records()
+
+# Process each Business Outcome
+for each business_outcome in INPUT_STREAM_BUSINESS_OUTCOMES:
+    if no child exists for business_outcome:
+        trace_upwards_from_bo(business_outcome)
+        
+    if nested_structure_detected:
+        duplicate_and_record(business_outcome, parent_chain)
+
+# Process each Project
+for each project in INPUT_STREAM_PROJECTS:
+    trace_upwards_from_project(project)
+    
+    if nested_structure_detected:
+        duplicate_and_record(project, parent_chain)
+
+# Process each Key Deliverable
+for each key_deliverable in INPUT_STREAM_KEY_DELIVERABLES:
+    parent = get_parent(key_deliverable)
+    
+    if parent is a Business Outcome:
+        trace_upwards_from_bo(parent)
+    
+    record_linkage(key_deliverable, parent)
+    add_to_combined_records()
+
+# Function to add records to the final output
+function add_to_combined_records():
+    for each record in current_hierarchy_chain:
+        combined_records.append(record)
+
+# Final steps to sort, deduplicate, and prepare output
+function finalize_output():
+    sort(combined_records)
+    deduplicate(combined_records)
+    return combined_records
