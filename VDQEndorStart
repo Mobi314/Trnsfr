@@ -1,15 +1,7 @@
 FY Quarterly Start or End = 
 VAR YearPart = IF(MONTH('Value Driver'[Date]) >= 4, YEAR('Value Driver'[Date]), YEAR('Value Driver'[Date]) - 1)
 VAR NextYearPart = YearPart + 1
-VAR FiscalQuarter = 
-    SWITCH(
-        TRUE(),
-        'Value Driver'[Date] >= DATE(YearPart, 4, 1) && 'Value Driver'[Date] <= DATE(YearPart, 6, 30), "Q1",
-        'Value Driver'[Date] >= DATE(YearPart, 7, 1) && 'Value Driver'[Date] <= DATE(YearPart, 9, 30), "Q2",
-        'Value Driver'[Date] >= DATE(YearPart, 10, 1) && 'Value Driver'[Date] <= DATE(YearPart, 12, 31), "Q3",
-        'Value Driver'[Date] >= DATE(NextYearPart, 1, 1) && 'Value Driver'[Date] <= DATE(NextYearPart, 3, 31), "Q4",
-        BLANK()
-    )
+VAR FiscalYear = IF(MONTH('Value Driver'[Date]) < 4, YearPart - 1, YearPart)
 VAR QuarterStartOrEnd = 
     SWITCH(
         TRUE(),
@@ -19,8 +11,8 @@ VAR QuarterStartOrEnd =
         'Value Driver'[Date] = DATE(YearPart, 9, 30), "FY" & YearPart & " Q2 End",
         'Value Driver'[Date] = DATE(YearPart, 10, 1), "FY" & YearPart & " Q3 Start",
         'Value Driver'[Date] = DATE(YearPart, 12, 31), "FY" & YearPart & " Q3 End",
-        'Value Driver'[Date] = DATE(NextYearPart, 1, 1), "FY" & NextYearPart & " Q4 Start",
-        'Value Driver'[Date] = DATE(NextYearPart, 3, 31), "FY" & NextYearPart & " Q4 End",
+        'Value Driver'[Date] = DATE(NextYearPart, 1, 1), "FY" & FiscalYear & " Q4 Start",
+        'Value Driver'[Date] = DATE(NextYearPart, 3, 31), "FY" & FiscalYear & " Q4 End",
         BLANK()
     )
 RETURN QuarterStartOrEnd
