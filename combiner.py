@@ -1,4 +1,5 @@
 import pandas as pd
+from ayx import Alteryx
 
 # Constants for hierarchy levels
 HIERARCHY = ["Program", "Project", "Business Outcome"]
@@ -28,10 +29,10 @@ def find_hierarchy(item, all_data, hierarchy_level, parent_chain=[]):
     
     return results
 
-# Read in data
-programs = pd.read_csv('Programs.csv')
-projects = pd.read_csv('Projects.csv')
-business_outcomes = pd.read_csv('BusinessOutcomes.csv')
+# Alteryx input streams
+programs = Alteryx.read("#1")
+projects = Alteryx.read("#2")
+business_outcomes = Alteryx.read("#3")
 
 # Prepare data dictionaries
 all_data = {
@@ -65,6 +66,6 @@ for bo_key in all_data['Business Outcome']:
 
 # Convert to DataFrame for output
 output_df = pd.DataFrame(final_records)
-output_df.to_csv('output.csv', index=False)
 
-print("Process Complete. Output saved as 'output.csv'.")
+# Output to Alteryx
+Alteryx.write(output_df, 1)
