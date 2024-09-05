@@ -1,10 +1,9 @@
-import Alteryx
 import pandas as pd
 
 # Step 1: Read the input data from Alteryx input stream #1
 df_input = Alteryx.read("#1")  # Reading input table from Alteryx (Input 1)
 
-# Step 2: Define functions for the binary search and recursive linkage process
+# Step 2: Define functions for binary search and recursive linkage process
 
 def binary_search(dataframe, key):
     """Binary search for a key in a sorted dataframe based on the 'key' field."""
@@ -30,22 +29,35 @@ def validate_link(parent_record, child_key):
                 return True
     return False
 
-def process_hierarchy(record, hierarchy, input_table):
-    """Recursively process parent links to build the full hierarchy."""
+def process_hierarchy(record, hierarchy, input_table, program=None, project=None):
+    """Recursively process parent links to build the full hierarchy.
+       Each path generates a new record, and nested items create duplicate entries."""
+    
     parent_links = record['All Parent Links'].split(',')
-    for link in parent_links:
-        if ':' not in link:  # Handle malformed or incorrect links
-            continue  # Skip if the format is wrong
+    record_type = record['Type']
+    
+    if record_type == 'Program':
+        program = record['key']  # Mark this as the Program for hierarchy
         
-        parent_type, parent_key = link.split(':', 1)  # Split with a limit to avoid errors
-        parent_record = binary_search(input_table, parent_key)  # Find parent using binary search
+    if record_type == 'Project':
+        project = record['key']  # Mark this as the Project for hierarchy
+        
+    if record_type == 'Business Outcome':
+        # Add BO records at the lowest level of the hierarchy
+        hierarchy.append([program, project, record['key']])  # Program, Project, Business Outcome
+    
+    # Process all parent links
+    for link in parent_links:
+        if ':' not in link:
+            continue  # Skip malformed links
+        
+        parent_type, parent_key = link.split(':', 1)  # Split the parent link into type and key
+        parent_record = binary_search(input_table, parent_key)  # Find the parent record via binary search
         
         if parent_record is not None and validate_link(parent_record, record['key']):
-            # Add the valid link to the hierarchy
-            hierarchy.append((parent_record['key'], record['key']))  # Store as tuple of parent-child
-            if parent_record['Type'] != 'Program':  # If the parent is not a Program, continue upwards
-                process_hierarchy(parent_record, hierarchy, input_table)
-                
+            # Recursive call to process the parent's hierarchy
+            process_hierarchy(parent_record, hierarchy, input_table, program, project)
+    
     return hierarchy
 
 # Step 3: Iterate through the input table and build the hierarchy linkages
@@ -54,23 +66,24 @@ output_rows = []
 for idx, record in df_input.iterrows():
     hierarchy = []
     
-    # If the record has non-empty parent links, we process them recursively
+    # Recursively process parent-child relationships
     if pd.notna(record['All Parent Links']) and record['All Parent Links'].strip():
         hierarchy = process_hierarchy(record, hierarchy, df_input)
+    else:
+        # Orphaned records without parents
+        if record['Type'] == 'Program':
+            output_rows.append([record['key'], None, None])  # Orphaned Program
+        elif record['Type'] == 'Project':
+            output_rows.append([None, record['key'], None])  # Orphaned Project
+        elif record['Type'] == 'Business Outcome':
+            output_rows.append([None, None, record['key']])  # Orphaned Business Outcome
     
-    # Add to output table based on the hierarchy built
-    for parent_key, child_key in hierarchy:
-        parent_record = binary_search(df_input, parent_key)
-        if parent_record is not None:  # Fix ambiguous Series truth value issue
-            if parent_record['Type'] == 'Program':
-                output_rows.append([parent_key, None, None, child_key])  # Program to Business Outcome/Project
-            elif parent_record['Type'] == 'Project':
-                output_rows.append([None, parent_key, None, child_key])  # Project to Business Outcome
-            elif parent_record['Type'] == 'Business Outcome':
-                output_rows.append([None, None, parent_key, child_key])  # Business Outcome to Business Outcome
+    # For each path found in the hierarchy, add to output
+    for program, project, business_outcome in hierarchy:
+        output_rows.append([program, project, business_outcome])
 
 # Step 4: Create a new dataframe for the output table
-df_output = pd.DataFrame(output_rows, columns=["Program Jira Key", "Project Jira Key", "Business Outcome Key", "Child Jira Key"])
+df_output = pd.DataFrame(output_rows, columns=["Program Jira Key", "Project Jira Key", "Business Outcome Jira Key"])
 
 # Step 5: Write the output dataframe to Alteryx output stream
 Alteryx.write(df_output, 1)
