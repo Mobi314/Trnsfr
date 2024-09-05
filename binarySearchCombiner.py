@@ -1,8 +1,7 @@
-import alteryx
 import pandas as pd
 
-# Step 1: Read the input data from Alteryx input stream
-df_input = alteryx.read(0)  # Reading input table from Alteryx (Input 1)
+# Step 1: Read the input data from Alteryx input stream #1
+df_input = Alteryx.read("#1")  # Reading input table from Alteryx (Input 1)
 
 # Step 2: Define functions for the binary search and recursive linkage process
 
@@ -36,7 +35,7 @@ def process_hierarchy(record, hierarchy, input_table):
         parent_type, parent_key = link.split(':')  # Extract parent key and type
         parent_record = binary_search(input_table, parent_key)  # Find parent using binary search
         
-        if parent_record and validate_link(parent_record, record['key']):
+        if parent_record is not None and validate_link(parent_record, record['key']):
             # Add the valid link to the hierarchy
             hierarchy.append((parent_record['key'], record['key']))  # Store as tuple of parent-child
             if parent_record['Type'] != 'Program':  # If the parent is not a Program, continue upwards
@@ -50,8 +49,8 @@ output_rows = []
 for idx, record in df_input.iterrows():
     hierarchy = []
     
-    # If the record has parent links, we process them recursively
-    if record['All Parent Links']:
+    # If the record has non-empty parent links, we process them recursively
+    if pd.notna(record['All Parent Links']) and record['All Parent Links'].strip():
         hierarchy = process_hierarchy(record, hierarchy, df_input)
     
     # Add to output table based on the hierarchy built
@@ -69,4 +68,4 @@ for idx, record in df_input.iterrows():
 df_output = pd.DataFrame(output_rows, columns=["Program Jira Key", "Project Jira Key", "Business Outcome Key", "Child Jira Key"])
 
 # Step 5: Write the output dataframe to Alteryx output stream
-alteryx.write(df_output, 0)
+Alteryx.write(df_output, 1)
