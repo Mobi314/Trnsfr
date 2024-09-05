@@ -12,7 +12,7 @@ def binary_search(dataframe, key):
         mid = (low + high) // 2
         mid_key = dataframe.iloc[mid]['key']
         if mid_key == key:
-            return dataframe.iloc[mid]  # Found the key
+            return dataframe.iloc[mid]  # Found the key, return the record
         elif mid_key < key:
             low = mid + 1
         else:
@@ -56,7 +56,7 @@ for idx, record in df_input.iterrows():
     # Add to output table based on the hierarchy built
     for parent_key, child_key in hierarchy:
         parent_record = binary_search(df_input, parent_key)
-        if parent_record:
+        if parent_record is not None:  # Fix ambiguous Series truth value issue
             if parent_record['Type'] == 'Program':
                 output_rows.append([parent_key, None, None, child_key])  # Program to Business Outcome/Project
             elif parent_record['Type'] == 'Project':
