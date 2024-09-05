@@ -1,3 +1,4 @@
+import Alteryx
 import pandas as pd
 
 # Step 1: Read the input data from Alteryx input stream #1
@@ -23,16 +24,20 @@ def validate_link(parent_record, child_key):
     """Check if the child_key exists in the parent's 'All Child Links' field."""
     child_links = parent_record['All Child Links'].split(',')
     for link in child_links:
-        _, linked_key = link.split(':')  # Extract the key from the 'Type:key' format
-        if linked_key == child_key:
-            return True
+        if ':' in link:  # Ensure link is in 'Type:Key' format
+            _, linked_key = link.split(':')  # Extract the key from the 'Type:key' format
+            if linked_key == child_key:
+                return True
     return False
 
 def process_hierarchy(record, hierarchy, input_table):
     """Recursively process parent links to build the full hierarchy."""
     parent_links = record['All Parent Links'].split(',')
     for link in parent_links:
-        parent_type, parent_key = link.split(':')  # Extract parent key and type
+        if ':' not in link:  # Handle malformed or incorrect links
+            continue  # Skip if the format is wrong
+        
+        parent_type, parent_key = link.split(':', 1)  # Split with a limit to avoid errors
         parent_record = binary_search(input_table, parent_key)  # Find parent using binary search
         
         if parent_record is not None and validate_link(parent_record, record['key']):
