@@ -1,0 +1,10 @@
+Platform Transformation = 
+IF (
+    CONTAINSSTRING ( 'ValueDriver'[Project Label(s)], "Ops:PlatformTransformation" ),
+    'ValueDriver'[Total Benefit $m],
+    IF (
+        CONTAINSSTRING ( 'ValueDriver'[Program Label(s)], "Ops:PlatformTransformation" ),
+        'ValueDriver'[Total Benefit $m],
+        BLANK()
+    )
+)
