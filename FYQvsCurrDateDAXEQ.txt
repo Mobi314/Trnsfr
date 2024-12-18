@@ -1,25 +1,37 @@
 Difference from Fiscal Quarter = 
-VAR SelectedDate = MAX('ValueDriver'[Date])
-VAR FiscalQuarterDate = MAX('ValueDriver'[Quarterly Start or End Date])
+VAR SelectedDate = SELECTEDVALUE('ValueDriver'[Date])
+VAR FiscalQuarterDate = SELECTEDVALUE('ValueDriver'[Quarterly Start or End Date])
 
--- Calculate Total Benefit $m for the selected date, ignoring the Quarterly Start or End Date slicer
+-- Validate that both slicers have a selection
+VAR IsValidSelection = 
+    NOT ISBLANK(SelectedDate) && NOT ISBLANK(FiscalQuarterDate)
+
+-- Calculate Total Benefit $m for the selected date
 VAR SelectedDateTotal =
-    CALCULATE(
-        SUM('ValueDriver'[Total Benefit $m]),
-        FILTER(
-            ALL('ValueDriver'[Quarterly Start or End Date]), -- Ignores Quarterly Start or End Date slicer
-            'ValueDriver'[Date] = SelectedDate
-        )
+    IF(
+        IsValidSelection,
+        CALCULATE(
+            SUM('ValueDriver'[Total Benefit $m]),
+            FILTER(
+                ALL('ValueDriver'),
+                'ValueDriver'[Date] = SelectedDate
+            )
+        ),
+        BLANK()
     )
 
--- Calculate Total Benefit $m for the fiscal quarter date, ignoring the Date slicer
+-- Calculate Total Benefit $m for the selected fiscal quarter date
 VAR FiscalQuarterTotal =
-    CALCULATE(
-        SUM('ValueDriver'[Total Benefit $m]),
-        FILTER(
-            ALL('ValueDriver'[Date]), -- Ignores Date slicer
-            'ValueDriver'[Quarterly Start or End Date] = FiscalQuarterDate
-        )
+    IF(
+        IsValidSelection,
+        CALCULATE(
+            SUM('ValueDriver'[Total Benefit $m]),
+            FILTER(
+                ALL('ValueDriver'),
+                'ValueDriver'[Quarterly Start or End Date] = FiscalQuarterDate
+            )
+        ),
+        BLANK()
     )
 
 -- Calculate the difference
@@ -28,7 +40,7 @@ VAR Difference = SelectedDateTotal - FiscalQuarterTotal
 -- Format the result with + or - sign
 RETURN
     IF(
-        NOT ISBLANK(SelectedDate) && NOT ISBLANK(FiscalQuarterDate), -- Ensure both slicers have valid selections
+        IsValidSelection,
         IF(
             Difference > 0,
             "+" & FORMAT(Difference, "0.00"),
