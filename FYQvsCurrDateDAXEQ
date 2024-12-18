@@ -1,0 +1,42 @@
+Difference from Fiscal Quarter = 
+VAR SelectedDate = MAX('ValueDriver'[Date])
+VAR FiscalQuarterDate = MAX('ValueDriver'[Quarterly Start or End Date])
+
+-- Calculate Total Benefit for the selected date
+VAR SelectedDateTotal =
+    SUMX(
+        SUMMARIZE(
+            FILTER(
+                'ValueDriver',
+                'ValueDriver'[Date] = SelectedDate
+            ),
+            'ValueDriver'[Value Driver JIRA Key],
+            "Total Benefit", MAX('ValueDriver'[Total Benefit $m])
+        ),
+        [Total Benefit]
+    )
+
+-- Calculate Total Benefit for the fiscal quarter date
+VAR FiscalQuarterTotal =
+    SUMX(
+        SUMMARIZE(
+            FILTER(
+                'ValueDriver',
+                'ValueDriver'[Date] = FiscalQuarterDate
+            ),
+            'ValueDriver'[Value Driver JIRA Key],
+            "Total Benefit", MAX('ValueDriver'[Total Benefit $m])
+        ),
+        [Total Benefit]
+    )
+
+-- Calculate the difference
+VAR Difference = SelectedDateTotal - FiscalQuarterTotal
+
+-- Format the result with + or - sign
+RETURN
+    IF(
+        Difference > 0,
+        "+" & FORMAT(Difference, "0.00"),
+        FORMAT(Difference, "0.00")
+    )
