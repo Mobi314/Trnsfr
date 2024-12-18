@@ -4,30 +4,22 @@ VAR FiscalQuarterDate = MAX('ValueDriver'[Quarterly Start or End Date])
 
 -- Calculate Total Benefit $m for the selected date, ignoring the Quarterly Start or End Date slicer
 VAR SelectedDateTotal =
-    SUMX(
-        SUMMARIZE(
-            FILTER(
-                ALL('ValueDriver'[Quarterly Start or End Date]), -- Ignores Quarterly Start or End Date slicer
-                'ValueDriver'[Date] = SelectedDate
-            ),
-            'ValueDriver'[Value Driver JIRA Key],
-            "Max Total Benefit", MAX('ValueDriver'[Total Benefit $m]) -- Use the actual Total Benefit $m field
-        ),
-        [Max Total Benefit]
+    CALCULATE(
+        SUM('ValueDriver'[Total Benefit $m]),
+        FILTER(
+            ALL('ValueDriver'[Quarterly Start or End Date]), -- Ignores Quarterly Start or End Date slicer
+            'ValueDriver'[Date] = SelectedDate
+        )
     )
 
 -- Calculate Total Benefit $m for the fiscal quarter date, ignoring the Date slicer
 VAR FiscalQuarterTotal =
-    SUMX(
-        SUMMARIZE(
-            FILTER(
-                ALL('ValueDriver'[Date]), -- Ignores Date slicer
-                'ValueDriver'[Quarterly Start or End Date] = FiscalQuarterDate
-            ),
-            'ValueDriver'[Value Driver JIRA Key],
-            "Max Total Benefit", MAX('ValueDriver'[Total Benefit $m]) -- Use the actual Total Benefit $m field
-        ),
-        [Max Total Benefit]
+    CALCULATE(
+        SUM('ValueDriver'[Total Benefit $m]),
+        FILTER(
+            ALL('ValueDriver'[Date]), -- Ignores Date slicer
+            'ValueDriver'[Quarterly Start or End Date] = FiscalQuarterDate
+        )
     )
 
 -- Calculate the difference
