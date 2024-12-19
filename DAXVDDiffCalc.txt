@@ -1,0 +1,202 @@
+Compare to Date 1 Year Ago = 
+VAR SelectedDate = SELECTEDVALUE('ValueDriver'[Date])
+VAR Date1YearAgo = EDATE(SelectedDate, -12)
+
+-- Calculate Total Benefit $m for the selected date
+VAR SelectedDateTotal =
+    CALCULATE(
+        SUM('ValueDriver'[Total Benefit $m]),
+        FILTER(
+            'ValueDriver',
+            'ValueDriver'[Date] = SelectedDate
+        )
+    )
+
+-- Calculate Total Benefit $m for the date 1 year ago
+VAR Date1YearAgoTotal =
+    CALCULATE(
+        SUM('ValueDriver'[Total Benefit $m]),
+        FILTER(
+            'ValueDriver',
+            'ValueDriver'[Date] = Date1YearAgo
+        )
+    )
+
+-- Calculate the difference
+VAR Difference = SelectedDateTotal - Date1YearAgoTotal
+
+-- Format the result with + or - sign
+RETURN
+    IF(
+        NOT ISBLANK(SelectedDate) && NOT ISBLANK(Date1YearAgoTotal),
+        IF(
+            Difference > 0,
+            "+" & FORMAT(Difference, "0.00"),
+            FORMAT(Difference, "0.00")
+        ),
+        BLANK()
+    )
+
+
+Compare to Start of Q1 = 
+VAR SelectedDate = SELECTEDVALUE('ValueDriver'[Date])
+VAR FiscalYearStart = DATE(YEAR(SelectedDate), 4, 1)
+
+-- Calculate Total Benefit $m for the selected date
+VAR SelectedDateTotal =
+    CALCULATE(
+        SUM('ValueDriver'[Total Benefit $m]),
+        FILTER(
+            'ValueDriver',
+            'ValueDriver'[Date] = SelectedDate
+        )
+    )
+
+-- Calculate Total Benefit $m for the start of Q1
+VAR Q1StartTotal =
+    CALCULATE(
+        SUM('ValueDriver'[Total Benefit $m]),
+        FILTER(
+            'ValueDriver',
+            'ValueDriver'[Date] = FiscalYearStart
+        )
+    )
+
+-- Calculate the difference
+VAR Difference = SelectedDateTotal - Q1StartTotal
+
+-- Format the result with + or - sign
+RETURN
+    IF(
+        NOT ISBLANK(SelectedDate) && NOT ISBLANK(Q1StartTotal),
+        IF(
+            Difference > 0,
+            "+" & FORMAT(Difference, "0.00"),
+            FORMAT(Difference, "0.00")
+        ),
+        BLANK()
+    )
+
+
+
+
+Compare to Start of Q2 = 
+VAR SelectedDate = SELECTEDVALUE('ValueDriver'[Date])
+VAR Q2Start = DATE(YEAR(SelectedDate), 7, 1)
+
+-- Calculate Total Benefit $m for the selected date
+VAR SelectedDateTotal =
+    CALCULATE(
+        SUM('ValueDriver'[Total Benefit $m]),
+        FILTER(
+            'ValueDriver',
+            'ValueDriver'[Date] = SelectedDate
+        )
+    )
+
+-- Calculate Total Benefit $m for the start of Q2
+VAR Q2StartTotal =
+    CALCULATE(
+        SUM('ValueDriver'[Total Benefit $m]),
+        FILTER(
+            'ValueDriver',
+            'ValueDriver'[Date] = Q2Start
+        )
+    )
+
+-- Calculate the difference
+VAR Difference = SelectedDateTotal - Q2StartTotal
+
+-- Format the result with + or - sign
+RETURN
+    IF(
+        NOT ISBLANK(SelectedDate) && NOT ISBLANK(Q2StartTotal),
+        IF(
+            Difference > 0,
+            "+" & FORMAT(Difference, "0.00"),
+            FORMAT(Difference, "0.00")
+        ),
+        BLANK()
+    )
+
+
+Compare to Start of Q3 = 
+VAR SelectedDate = SELECTEDVALUE('ValueDriver'[Date])
+VAR Q3Start = DATE(YEAR(SelectedDate), 10, 1)
+
+-- Calculate Total Benefit $m for the selected date
+VAR SelectedDateTotal =
+    CALCULATE(
+        SUM('ValueDriver'[Total Benefit $m]),
+        FILTER(
+            'ValueDriver',
+            'ValueDriver'[Date] = SelectedDate
+        )
+    )
+
+-- Calculate Total Benefit $m for the start of Q3
+VAR Q3StartTotal =
+    CALCULATE(
+        SUM('ValueDriver'[Total Benefit $m]),
+        FILTER(
+            'ValueDriver',
+            'ValueDriver'[Date] = Q3Start
+        )
+    )
+
+-- Calculate the difference
+VAR Difference = SelectedDateTotal - Q3StartTotal
+
+-- Format the result with + or - sign
+RETURN
+    IF(
+        NOT ISBLANK(SelectedDate) && NOT ISBLANK(Q3StartTotal),
+        IF(
+            Difference > 0,
+            "+" & FORMAT(Difference, "0.00"),
+            FORMAT(Difference, "0.00")
+        ),
+        BLANK()
+    )
+
+
+
+
+Compare to Start of Q4 = 
+VAR SelectedDate = SELECTEDVALUE('ValueDriver'[Date])
+VAR Q4Start = DATE(YEAR(SelectedDate) + 1, 1, 1)
+
+-- Calculate Total Benefit $m for the selected date
+VAR SelectedDateTotal =
+    CALCULATE(
+        SUM('ValueDriver'[Total Benefit $m]),
+        FILTER(
+            'ValueDriver',
+            'ValueDriver'[Date] = SelectedDate
+        )
+    )
+
+-- Calculate Total Benefit $m for the start of Q4
+VAR Q4StartTotal =
+    CALCULATE(
+        SUM('ValueDriver'[Total Benefit $m]),
+        FILTER(
+            'ValueDriver',
+            'ValueDriver'[Date] = Q4Start
+        )
+    )
+
+-- Calculate the difference
+VAR Difference = SelectedDateTotal - Q4StartTotal
+
+-- Format the result with + or - sign
+RETURN
+    IF(
+        NOT ISBLANK(SelectedDate) && NOT ISBLANK(Q4StartTotal),
+        IF(
+            Difference > 0,
+            "+" & FORMAT(Difference, "0.00"),
+            FORMAT(Difference, "0.00")
+        ),
+        BLANK()
+    )
