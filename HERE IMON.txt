@@ -1,0 +1,212 @@
+Current Total Benefit $m = 
+VAR MaxDate = MAX('ValueDriver'[Date])
+
+RETURN
+    SUMX(
+        SUMMARIZE(
+            FILTER(
+                'ValueDriver',
+                'ValueDriver'[Date] = MaxDate
+            ),
+            'ValueDriver'[Value Driver JIRA Key],
+            "UniqueBenefit", MAX('ValueDriver'[Total Benefit $m])
+        ),
+        [UniqueBenefit]
+    )
+
+
+Difference Max vs Min = 
+VAR MaxDate = MAX('ValueDriver'[Date])
+VAR MinDate = MIN('ValueDriver'[Date])
+
+VAR MaxTotal =
+    SUMX(
+        SUMMARIZE(
+            FILTER(
+                'ValueDriver',
+                'ValueDriver'[Date] = MaxDate
+            ),
+            'ValueDriver'[Value Driver JIRA Key],
+            "UniqueBenefit", MAX('ValueDriver'[Total Benefit $m])
+        ),
+        [UniqueBenefit]
+    )
+
+VAR MinTotal =
+    SUMX(
+        SUMMARIZE(
+            FILTER(
+                'ValueDriver',
+                'ValueDriver'[Date] = MinDate
+            ),
+            'ValueDriver'[Value Driver JIRA Key],
+            "UniqueBenefit", MAX('ValueDriver'[Total Benefit $m])
+        ),
+        [UniqueBenefit]
+    )
+
+RETURN
+    IF(
+        ISBLANK(MaxTotal) || ISBLANK(MinTotal),
+        "Data Not Available",
+        MaxTotal - MinTotal
+    )
+
+
+
+Difference Max vs Q1 = 
+VAR MaxDate = MAX('ValueDriver'[Date])
+VAR Q1Start = DATE(YEAR(MaxDate), 4, 1)
+
+VAR MaxTotal =
+    SUMX(
+        SUMMARIZE(
+            FILTER(
+                'ValueDriver',
+                'ValueDriver'[Date] = MaxDate
+            ),
+            'ValueDriver'[Value Driver JIRA Key],
+            "UniqueBenefit", MAX('ValueDriver'[Total Benefit $m])
+        ),
+        [UniqueBenefit]
+    )
+
+VAR Q1Total =
+    SUMX(
+        SUMMARIZE(
+            FILTER(
+                'ValueDriver',
+                'ValueDriver'[Date] = Q1Start
+            ),
+            'ValueDriver'[Value Driver JIRA Key],
+            "UniqueBenefit", MAX('ValueDriver'[Total Benefit $m])
+        ),
+        [UniqueBenefit]
+    )
+
+RETURN
+    IF(
+        ISBLANK(MaxTotal) || ISBLANK(Q1Total),
+        "Data Not Available",
+        MaxTotal - Q1Total
+    )
+
+
+
+
+Difference Max vs Q2 = 
+VAR MaxDate = MAX('ValueDriver'[Date])
+VAR Q2Start = DATE(YEAR(MaxDate), 7, 1)
+
+VAR MaxTotal =
+    SUMX(
+        SUMMARIZE(
+            FILTER(
+                'ValueDriver',
+                'ValueDriver'[Date] = MaxDate
+            ),
+            'ValueDriver'[Value Driver JIRA Key],
+            "UniqueBenefit", MAX('ValueDriver'[Total Benefit $m])
+        ),
+        [UniqueBenefit]
+    )
+
+VAR Q2Total =
+    SUMX(
+        SUMMARIZE(
+            FILTER(
+                'ValueDriver',
+                'ValueDriver'[Date] = Q2Start
+            ),
+            'ValueDriver'[Value Driver JIRA Key],
+            "UniqueBenefit", MAX('ValueDriver'[Total Benefit $m])
+        ),
+        [UniqueBenefit]
+    )
+
+RETURN
+    IF(
+        ISBLANK(MaxTotal) || ISBLANK(Q2Total),
+        "Data Not Available",
+        MaxTotal - Q2Total
+    )
+
+
+
+
+Difference Max vs Q3 = 
+VAR MaxDate = MAX('ValueDriver'[Date])
+VAR Q3Start = DATE(YEAR(MaxDate), 10, 1)
+
+VAR MaxTotal =
+    SUMX(
+        SUMMARIZE(
+            FILTER(
+                'ValueDriver',
+                'ValueDriver'[Date] = MaxDate
+            ),
+            'ValueDriver'[Value Driver JIRA Key],
+            "UniqueBenefit", MAX('ValueDriver'[Total Benefit $m])
+        ),
+        [UniqueBenefit]
+    )
+
+VAR Q3Total =
+    SUMX(
+        SUMMARIZE(
+            FILTER(
+                'ValueDriver',
+                'ValueDriver'[Date] = Q3Start
+            ),
+            'ValueDriver'[Value Driver JIRA Key],
+            "UniqueBenefit", MAX('ValueDriver'[Total Benefit $m])
+        ),
+        [UniqueBenefit]
+    )
+
+RETURN
+    IF(
+        ISBLANK(MaxTotal) || ISBLANK(Q3Total),
+        "Data Not Available",
+        MaxTotal - Q3Total
+    )
+
+
+
+
+Difference Max vs Q4 = 
+VAR MaxDate = MAX('ValueDriver'[Date])
+VAR Q4Start = DATE(YEAR(MaxDate) + 1, 1, 1)
+
+VAR MaxTotal =
+    SUMX(
+        SUMMARIZE(
+            FILTER(
+                'ValueDriver',
+                'ValueDriver'[Date] = MaxDate
+            ),
+            'ValueDriver'[Value Driver JIRA Key],
+            "UniqueBenefit", MAX('ValueDriver'[Total Benefit $m])
+        ),
+        [UniqueBenefit]
+    )
+
+VAR Q4Total =
+    SUMX(
+        SUMMARIZE(
+            FILTER(
+                'ValueDriver',
+                'ValueDriver'[Date] = Q4Start
+            ),
+            'ValueDriver'[Value Driver JIRA Key],
+            "UniqueBenefit", MAX('ValueDriver'[Total Benefit $m])
+        ),
+        [UniqueBenefit]
+    )
+
+RETURN
+    IF(
+        ISBLANK(MaxTotal) || ISBLANK(Q4Total),
+        "Data Not Available",
+        MaxTotal - Q4Total
+    )
